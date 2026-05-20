@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MatriculaRepositoy extends JpaRepository<Matricula, Long> {
+
+    Matricula findByAlunoIdAndAtiva(Long alunoId, boolean ativa);
+    Matricula findByMatriculaAndAtiva(Long matriculaId, boolean ativa);
 }
