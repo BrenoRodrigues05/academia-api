@@ -13,8 +13,7 @@ public class Matricula {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String matricula;
+    private Long matricula;
     @ManyToOne
     @JoinColumn(name = "plano_id", nullable = false)
     private Plano plano;
