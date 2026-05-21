@@ -3,6 +3,7 @@ package com.academia.academia_api.DTOs;
 import com.academia.academia_api.entity.enums.TipoPlano;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ public class PlanoCreateDTO {
     @NotBlank(message = "A descrição do plano é obrigatória.")
     private String descricao;
     @NotNull(message = "É necessário um valor para o plano.")
+    @Positive(message = "O valor do plano precisa ser positivo.")
     private BigDecimal valor;
     @NotNull(message = "Selecione o tipo do plano.")
     private TipoPlano tipo;

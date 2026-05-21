@@ -1,6 +1,7 @@
 package com.academia.academia_api.DTOs;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ public class PlanoUpdateDTO {
     @NotBlank(message = "É necessária uma descrição para o plano.")
     private String descricao;
     @NonNull
+    @Positive(message = "O valor do plano precisa ser positivo.")
     private BigDecimal valor;
     @NotBlank(message = "É necessário uma imagem para o plano.")
     private String imagemUrl;
