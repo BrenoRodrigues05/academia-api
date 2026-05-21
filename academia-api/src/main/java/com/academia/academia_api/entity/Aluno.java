@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -18,10 +20,14 @@ public class Aluno {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long  id;
+    @Column(nullable = false, length = 100)
    private String nome;
+    @Column(nullable = false, length = 100)
    private String email;
-   private int idade;
+   private LocalDate dataNascimento;
+   @Column(nullable = false, length = 15)
    private String telefone;
+   @Column(nullable = false)
     @Enumerated(EnumType.STRING)
    private SexoEnum sexo;
 }
