@@ -1,6 +1,7 @@
 package com.academia.academia_api.services;
 
 import com.academia.academia_api.entity.Aluno;
+import com.academia.academia_api.entity.enums.SexoEnum;
 import com.academia.academia_api.repository.AlunoRepository;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,50 @@ public class AlunoService {
         if (alunoDeletado != null) {
             alunoRepository.deleteById(id);
         }
-
         return alunoDeletado;
+    }
+
+    public Aluno findByNome(String nome){
+        if(nome==null || nome.isEmpty()){
+            throw new RuntimeException("Nome inválido.");
+        }
+        var buscaAluno = alunoRepository.findByNome(nome);
+        if(buscaAluno==null){
+            throw new RuntimeException("Aluno não encontrado.");
+        }
+        return buscaAluno;
+    }
+
+    public Aluno findByEmail(String email){
+        if(email==null || email.isEmpty()){
+            throw new RuntimeException("E-mail nulo ou vazio.");
+        }
+        var  buscaAluno = alunoRepository.findByEmail(email);
+        if(buscaAluno==null){
+            throw new RuntimeException("Aluno não  encontrado.");
+        }
+        return buscaAluno;
+    }
+
+    public Aluno findBySexo(SexoEnum sexo){
+        if(sexo==null){
+            throw new RuntimeException("Sexo nulo ou vazio.");
+        }
+        var buscaAluno = alunoRepository.findBySexo(sexo);
+        if(buscaAluno==null){
+            throw new RuntimeException("Nenhum aluno encontrado.");
+        }
+        return buscaAluno;
+    }
+
+    public Aluno findByIdade(int idade){
+        if(idade<=0 || idade >= 100){
+            throw new RuntimeException("Idade inválida.");
+        }
+        var buscaAluno = alunoRepository.findByIdade(idade);
+        if(buscaAluno==null){
+            throw new RuntimeException("Nenhum aluno com a idade selecionada.");
+        }
+        return buscaAluno;
     }
 }
