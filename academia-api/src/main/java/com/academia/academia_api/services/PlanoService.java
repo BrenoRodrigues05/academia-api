@@ -1,9 +1,11 @@
 package com.academia.academia_api.services;
 
 import com.academia.academia_api.entity.Plano;
+import com.academia.academia_api.entity.enums.TipoPlano;
 import com.academia.academia_api.repository.PlanoRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -43,4 +45,36 @@ public class PlanoService {
         planoRepository.deleteById(id);
     }
 
+    public Plano BuscarPeloNome(String nome) {
+        if(nome == null || nome.isEmpty()) {
+            throw new RuntimeException("Nome do plano inválido ou não existe.");
+        }
+        return planoRepository.findByNome(nome);
+    }
+
+    public Plano  BuscarPeloDescricao(String descricao) {
+        if(descricao == null || descricao.isEmpty()) {
+            throw new RuntimeException("Descrição inválida ou não existe.");
+        }
+        return  planoRepository.findByDescricao(descricao);
+    }
+
+    public Plano  BuscarPeloTipo(TipoPlano tipo) {
+        var bucaPlano = planoRepository.findByTipo(tipo);
+        if(bucaPlano == null) {
+            throw new RuntimeException("Não existe plano com o tipo selecionado.");
+        }
+        return bucaPlano;
+    }
+
+    public Plano BuscaPeloValor(BigDecimal valor) {
+        if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Valor inválido ou nulo");
+        }
+        var bucaPlano = planoRepository.findByValor(valor);
+        if(bucaPlano == null) {
+            throw new RuntimeException("Não existe plano com o valor selecionado.");
+        }
+        return bucaPlano;
+    }
 }
