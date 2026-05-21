@@ -82,14 +82,17 @@ public class AlunoService {
         return buscaAluno;
     }
 
-    public Aluno findByIdade(int idade){
-        if(idade<=0 || idade >= 100){
+    public List<Aluno> findByIdade(int idade) {
+        if (idade <= 0 || idade >= 100) {
             throw new RuntimeException("Idade inválida.");
         }
-        var buscaAluno = alunoRepository.findByIdade(idade);
-        if(buscaAluno==null){
+
+        List<Aluno> buscaAlunos = alunoRepository.findByIdadeCustom(idade);
+
+        if (buscaAlunos.isEmpty()) {
             throw new RuntimeException("Nenhum aluno com a idade selecionada.");
         }
-        return buscaAluno;
+
+        return buscaAlunos;
     }
 }

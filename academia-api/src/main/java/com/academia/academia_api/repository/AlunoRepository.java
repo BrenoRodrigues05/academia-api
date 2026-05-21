@@ -5,11 +5,13 @@ import com.academia.academia_api.entity.enums.SexoEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
+    List<Aluno> findByIdadeCustom(int idade);
     Aluno findByNome(String nome);
-    Aluno findByIdade(int idade);
     Aluno findBySexo(SexoEnum sexo);
     Aluno findByEmail(String email);
 }
