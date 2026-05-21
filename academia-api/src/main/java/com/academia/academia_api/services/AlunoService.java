@@ -49,15 +49,15 @@ public class AlunoService {
         return alunoDeletado;
     }
 
-    public Aluno findByNome(String nome){
-        if(nome==null || nome.isEmpty()){
+    public List<Aluno> findByNome(String nome){
+        if(nome == null || nome.isEmpty()){
             throw new RuntimeException("Nome inválido.");
         }
-        var buscaAluno = alunoRepository.findByNome(nome);
-        if(buscaAluno==null){
-            throw new RuntimeException("Aluno não encontrado.");
+        List<Aluno> buscaAlunos = alunoRepository.findByNome(nome);
+        if(buscaAlunos.isEmpty()){
+            throw new RuntimeException("Nenhum aluno encontrado com esse nome.");
         }
-        return buscaAluno;
+        return buscaAlunos;
     }
 
     public Aluno findByEmail(String email){
@@ -71,15 +71,15 @@ public class AlunoService {
         return buscaAluno;
     }
 
-    public Aluno findBySexo(SexoEnum sexo){
-        if(sexo==null){
+    public List<Aluno> findBySexo(SexoEnum sexo){
+        if(sexo == null){
             throw new RuntimeException("Sexo nulo ou vazio.");
         }
-        var buscaAluno = alunoRepository.findBySexo(sexo);
-        if(buscaAluno==null){
+        List<Aluno> buscaAlunos = alunoRepository.findBySexo(sexo);
+        if(buscaAlunos.isEmpty()){
             throw new RuntimeException("Nenhum aluno encontrado.");
         }
-        return buscaAluno;
+        return buscaAlunos;
     }
 
     public List<Aluno> findByIdade(int idade) {

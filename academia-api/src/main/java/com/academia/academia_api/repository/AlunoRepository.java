@@ -3,6 +3,8 @@ package com.academia.academia_api.repository;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.enums.SexoEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -10,8 +12,9 @@ import java.util.List;
 @Repository
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
-    List<Aluno> findByIdadeCustom(int idade);
-    Aluno findByNome(String nome);
-    Aluno findBySexo(SexoEnum sexo);
+    @Query("SELECT a FROM Aluno a WHERE YEAR(CURRENT_DATE) - YEAR(a.dataNascimento) = :idade")
+    List<Aluno> findByIdadeCustom(@Param("idade") int idade);
+    List<Aluno> findByNome(String nome);
+    List<Aluno> findBySexo(SexoEnum sexo);
     Aluno findByEmail(String email);
 }
