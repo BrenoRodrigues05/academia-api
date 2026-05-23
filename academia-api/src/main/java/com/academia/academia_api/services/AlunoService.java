@@ -1,7 +1,11 @@
 package com.academia.academia_api.services;
 
+import com.academia.academia_api.DTOs.AlunoCreateDTO;
+import com.academia.academia_api.DTOs.AlunoResponseDTO;
+import com.academia.academia_api.DTOs.AlunoUpdateDTO;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.enums.SexoEnum;
+import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,32 +15,54 @@ import java.util.List;
 public class AlunoService {
 
     private final AlunoRepository alunoRepository;
+    private final AlunoMapper alunoMapper;
 
-    public  AlunoService(AlunoRepository alunoRepository) {
+    public AlunoService(AlunoRepository alunoRepository, AlunoMapper alunoMapper) {
         this.alunoRepository = alunoRepository;
+        this.alunoMapper = alunoMapper;
     }
 
-    public List<Aluno> listarAlunos(){
-        return alunoRepository.findAll();
+    public List<AlunoResponseDTO> listarAlunos() {
+        return alunoRepository.findAll().stream()
+                .map(alunoMapper::toResponseDTO)
+                .toList();
     }
 
-    public Aluno fIndByid(Long id){
-       if(id==null){
-           return null;
-       }
-        return alunoRepository.findById(id)
+    public AlunoResponseDTO findById(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Aluno aluno = alunoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado."));
+
+        return alunoMapper.toResponseDTO(aluno);
     }
 
-    public Aluno addAluno(Aluno aluno){
-        return alunoRepository.save(aluno);
+    public AlunoResponseDTO addAluno(AlunoCreateDTO createDTO) {
+
+        Aluno alunoEntity = alunoMapper.toEntity(createDTO);
+
+        Aluno alunoSalvo = alunoRepository.save(alunoEntity);
+
+        return alunoMapper.toResponseDTO(alunoSalvo);
     }
 
-    public Aluno updateAluno(Aluno aluno){
-        return alunoRepository.save(aluno);
+    public AlunoResponseDTO updateAluno(Long id, AlunoUpdateDTO updateDTO) {
+        if (id == null) {
+            throw new RuntimeException("ID inválido para atualização.");
+        }
+
+        Aluno alunoExistente = alunoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Aluno não encontrado para atualização."));
+
+        alunoMapper.updateEntityFromDTO(updateDTO, alunoExistente);
+
+        Aluno alunoAtualizado = alunoRepository.save(alunoExistente);
+
+        return alunoMapper.toResponseDTO(alunoAtualizado);
     }
 
-    public Aluno deleteAluno(Long id){
+    public AlunoResponseDTO deleteAluno(Long id) {
         if (id == null) {
             return null;
         }
@@ -46,43 +72,51 @@ public class AlunoService {
         if (alunoDeletado != null) {
             alunoRepository.deleteById(id);
         }
-        return alunoDeletado;
+
+        return alunoMapper.toResponseDTO(alunoDeletado);
     }
 
-    public List<Aluno> findByNome(String nome){
-        if(nome == null || nome.isEmpty()){
+    public List<AlunoResponseDTO> findByNome(String nome) {
+        if (nome == null || nome.isEmpty()) {
             throw new RuntimeException("Nome inválido.");
         }
         List<Aluno> buscaAlunos = alunoRepository.findByNome(nome);
-        if(buscaAlunos.isEmpty()){
+        if (buscaAlunos.isEmpty()) {
             throw new RuntimeException("Nenhum aluno encontrado com esse nome.");
         }
-        return buscaAlunos;
+
+        return buscaAlunos.stream()
+                .map(alunoMapper::toResponseDTO)
+                .toList();
     }
 
-    public Aluno findByEmail(String email){
-        if(email==null || email.isEmpty()){
+    public AlunoResponseDTO findByEmail(String email) {
+        if (email == null || email.isEmpty()) {
             throw new RuntimeException("E-mail nulo ou vazio.");
         }
-        var  buscaAluno = alunoRepository.findByEmail(email);
-        if(buscaAluno==null){
-            throw new RuntimeException("Aluno não  encontrado.");
+        var buscaAluno = alunoRepository.findByEmail(email);
+        if (buscaAluno == null) {
+            throw new RuntimeException("Aluno não encontrado.");
         }
-        return buscaAluno;
+
+        return alunoMapper.toResponseDTO(buscaAluno);
     }
 
-    public List<Aluno> findBySexo(SexoEnum sexo){
-        if(sexo == null){
+    public List<AlunoResponseDTO> findBySexo(SexoEnum sexo) {
+        if (sexo == null) {
             throw new RuntimeException("Sexo nulo ou vazio.");
         }
         List<Aluno> buscaAlunos = alunoRepository.findBySexo(sexo);
-        if(buscaAlunos.isEmpty()){
+        if (buscaAlunos.isEmpty()) {
             throw new RuntimeException("Nenhum aluno encontrado.");
         }
-        return buscaAlunos;
+
+        return buscaAlunos.stream()
+                .map(alunoMapper::toResponseDTO)
+                .toList();
     }
 
-    public List<Aluno> findByIdade(int idade) {
+    public List<AlunoResponseDTO> findByIdade(int idade) {
         if (idade <= 0 || idade >= 100) {
             throw new RuntimeException("Idade inválida.");
         }
@@ -93,6 +127,8 @@ public class AlunoService {
             throw new RuntimeException("Nenhum aluno com a idade selecionada.");
         }
 
-        return buscaAlunos;
+        return buscaAlunos.stream()
+                .map(alunoMapper::toResponseDTO)
+                .toList();
     }
 }
