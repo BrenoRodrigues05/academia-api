@@ -1,5 +1,8 @@
 package com.academia.academia_api.services;
+import com.academia.academia_api.DTOs.MatriculaCreateDTO;
+import com.academia.academia_api.DTOs.MatriculaResponseDTO;
 import com.academia.academia_api.entity.Matricula;
+import com.academia.academia_api.mappings.MatriculaMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PlanoRepository;
@@ -14,29 +17,34 @@ public class MatriculaService {
     private final MatriculaRepositoy matriculaRepositoy;
     private final AlunoRepository alunoRepository;
     private final PlanoRepository planoRepository ;
+    private final MatriculaMapper matriculaMapper;
 
     public MatriculaService(MatriculaRepositoy matriculaRepositoy, AlunoRepository alunoRepository,
-                            PlanoRepository planoRepository) {
+                            PlanoRepository planoRepository, MatriculaMapper matriculaMapper) {
         this.matriculaRepositoy = matriculaRepositoy;
         this.alunoRepository = alunoRepository;
         this.planoRepository = planoRepository;
+        this.matriculaMapper = matriculaMapper;
     }
 
-    public List<Matricula> listarMatriculas() {
+    public List<MatriculaResponseDTO> listarMatriculas() {
 
-        return matriculaRepositoy.findAll();
+       return matriculaRepositoy.findAll().stream()
+               .map(matriculaMapper::toResponseDTO)
+               .toList();
     }
 
-   public Matricula findById(Long idMatricula) {
+   public MatriculaResponseDTO findById(Long idMatricula) {
        if(idMatricula == null || idMatricula <= 0){
            throw new RuntimeException("Id invalido ou inexistente.");
        }
 
-      return matriculaRepositoy.findById(idMatricula)
-               .orElseThrow(() -> new RuntimeException("Matricula não encontrada."));
+      Matricula matricula =  matriculaRepositoy.findById(idMatricula)
+              .orElseThrow(() -> new RuntimeException("Matricula não encontrada."));
+       return matriculaMapper.toResponseDTO(matricula);
    }
 
-   public Matricula criarMatricula(Matricula matricula, Long idAluno, Long idPlano) {
+   public MatriculaResponseDTO criarMatricula(MatriculaCreateDTO dto, Long idAluno, Long idPlano) {
        if (idAluno == null || idAluno <= 0 || idPlano == null || idPlano <= 0) {
            throw new RuntimeException("Id invalido ou inexistente.");
        }
@@ -55,13 +63,19 @@ public class MatriculaService {
        if(buscaPlano.isEmpty()){
            throw new RuntimeException("Plano selecionado é inválido.");
        }
-       matricula.setAluno(buscaAluno.get());
-       matricula.setPlano(buscaPlano.get());
-       matricula.setAtiva(true);
-       return  matriculaRepositoy.save(matricula);
+
+       Matricula novaMatricula = matriculaMapper.toEntity(dto);
+
+       novaMatricula.setAluno(buscaAluno.get());
+       novaMatricula.setPlano(buscaPlano.get());
+       novaMatricula.setAtiva(true);
+
+       Matricula salva = matriculaRepositoy.save(novaMatricula);
+
+       return matriculaMapper.toResponseDTO(salva);
    }
 
-   public Matricula desativarMatricula(Long idMatricula) {
+   public MatriculaResponseDTO desativarMatricula(Long idMatricula) {
         if(idMatricula == null || idMatricula <= 0){
             throw new RuntimeException("Id invalido ou inexistente.");
         }
@@ -71,8 +85,12 @@ public class MatriculaService {
             throw new RuntimeException("Matricula inexistente ou já inativa.");
         }
 
-        buscaMatricula.setAtiva(false);
-        return matriculaRepositoy.save(buscaMatricula);
+       buscaMatricula.setAtiva(false);
+
+       Matricula matriculaAtualizada =
+               matriculaRepositoy.save(buscaMatricula);
+
+       return matriculaMapper.toResponseDTO(matriculaAtualizada);
    }
 
 }
