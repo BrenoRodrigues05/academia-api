@@ -1,6 +1,4 @@
 package com.academia.academia_api.DTOs;
-import com.academia.academia_api.entity.Aluno;
-import com.academia.academia_api.entity.Personal;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,7 +18,8 @@ public class TreinoCreateDTO {
     private String nome;
     private String observacoes;
     @NotNull(message = "O personal responsável é obrigatório.")
-    private Personal personalId;
+    private Long personalId;
+
     @NotNull(message = "É necessário selecionar um aluno.")
-    private Aluno alunoId;
+    private Long alunoId;
 }
