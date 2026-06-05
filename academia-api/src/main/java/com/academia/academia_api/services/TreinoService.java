@@ -1,0 +1,198 @@
+package com.academia.academia_api.services;
+
+import com.academia.academia_api.DTOs.TreinoCreateDTO;
+import com.academia.academia_api.DTOs.TreinoResponseDTO;
+import com.academia.academia_api.DTOs.TreinoUpdateDTO;
+import com.academia.academia_api.entity.Aluno;
+import com.academia.academia_api.entity.Personal;
+import com.academia.academia_api.entity.Treino;
+import com.academia.academia_api.mappings.TreinoMapper;
+import com.academia.academia_api.repository.AlunoRepository;
+import com.academia.academia_api.repository.PersonalRepository;
+import com.academia.academia_api.repository.TreinoRepository;
+import org.jspecify.annotations.NonNull;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class TreinoService {
+
+    private final TreinoRepository treinoRepository;
+    private final TreinoMapper treinoMapper;
+    private final PersonalRepository personalRepository;
+    private final AlunoRepository alunoRepository;
+
+    public TreinoService(
+            TreinoRepository treinoRepository,
+            TreinoMapper treinoMapper,
+            PersonalRepository personalRepository,
+            AlunoRepository alunoRepository) {
+
+        this.treinoRepository = treinoRepository;
+        this.treinoMapper = treinoMapper;
+        this.personalRepository = personalRepository;
+        this.alunoRepository = alunoRepository;
+    }
+
+    public List<TreinoResponseDTO> findAll() {
+        return treinoRepository.findAll().stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+    }
+
+    public TreinoResponseDTO findById(Long id) {
+
+        if (id == null || id <= 0) {
+            throw new RuntimeException("Id inválido.");
+        }
+
+        Treino treino = treinoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Treino não encontrado."));
+
+        return treinoMapper.toResponseDTO(treino);
+    }
+
+    public List<TreinoResponseDTO> findByAtivoTrue() {
+
+        return treinoRepository.findByAtivoTrue().stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+    }
+
+    public List<TreinoResponseDTO> findByAtivoFalse() {
+
+        return treinoRepository.findByAtivoFalse().stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+    }
+
+    public List<TreinoResponseDTO> findByNome(String nome) {
+
+        if (nome == null || nome.isBlank()) {
+            throw new RuntimeException("Nome inválido.");
+        }
+
+        List<Treino> treinos =
+                treinoRepository.findByNomeContainingIgnoreCase(nome);
+
+        if (treinos.isEmpty()) {
+            throw new RuntimeException("Nenhum treino encontrado.");
+        }
+
+        return treinos.stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+    }
+
+    public List<TreinoResponseDTO> findByPersonal(Long personalId) {
+
+        if (personalId == null || personalId <= 0) {
+            throw new RuntimeException("Id do personal inválido.");
+        }
+
+        return treinoRepository.findByPersonalId(personalId)
+                .stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+    }
+
+    public TreinoResponseDTO findTreinoAtivoAluno(Long alunoId) {
+
+        if (alunoId == null || alunoId <= 0) {
+            throw new RuntimeException("Id do aluno inválido.");
+        }
+
+        Treino treino = treinoRepository
+                .findByAlunoIdAndAtivoTrue(alunoId)
+                .orElseThrow(() ->
+                        new RuntimeException("Aluno não possui treino ativo."));
+
+        return treinoMapper.toResponseDTO(treino);
+    }
+
+    public TreinoResponseDTO addTreino(@NonNull TreinoCreateDTO dto) {
+
+        Personal personal = personalRepository.findById(dto.getPersonalId())
+                .orElseThrow(() ->
+                        new RuntimeException("Personal não encontrado."));
+
+        Aluno aluno = alunoRepository.findById(dto.getAlunoId())
+                .orElseThrow(() ->
+                        new RuntimeException("Aluno não encontrado."));
+
+        if (treinoRepository.existsByAlunoIdAndAtivoTrue(aluno.getId())) {
+            throw new RuntimeException(
+                    "O aluno já possui um treino ativo.");
+        }
+
+        Treino treino = treinoMapper.toEntity(dto);
+
+        treino.setPersonal(personal);
+        treino.setAluno(aluno);
+        treino.setAtivo(true);
+
+        Treino treinoSalvo = treinoRepository.save(treino);
+
+        return treinoMapper.toResponseDTO(treinoSalvo);
+    }
+
+    public TreinoResponseDTO updateTreino(
+            Long id,
+            TreinoUpdateDTO dto) {
+
+        if (id == null || id <= 0) {
+            throw new RuntimeException("Id inválido.");
+        }
+
+        Treino treino = treinoRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Treino não encontrado."));
+
+        treinoMapper.updateEntityFromDTO(dto, treino);
+
+        Treino treinoAtualizado = treinoRepository.save(treino);
+
+        return treinoMapper.toResponseDTO(treinoAtualizado);
+    }
+
+    public TreinoResponseDTO alterarStatus(
+            Long id,
+            Boolean ativo) {
+
+        if (id == null || id <= 0) {
+            throw new RuntimeException("Id inválido.");
+        }
+
+        Treino treino = treinoRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Treino não encontrado."));
+
+        if (treino.getAtivo().equals(ativo)) {
+            throw new RuntimeException(
+                    "O treino já está com esse status.");
+        }
+
+        treino.setAtivo(ativo);
+
+        treinoRepository.save(treino);
+
+        return treinoMapper.toResponseDTO(treino);
+    }
+
+    public TreinoResponseDTO deleteTreino(Long id) {
+
+        if (id == null || id <= 0) {
+            throw new RuntimeException("Id inválido.");
+        }
+
+        Treino treino = treinoRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Treino não encontrado."));
+
+        treinoRepository.delete(treino);
+
+        return treinoMapper.toResponseDTO(treino);
+    }
+
+}
