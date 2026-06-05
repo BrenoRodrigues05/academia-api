@@ -1,13 +1,14 @@
 package com.academia.academia_api.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "treinos")
+@Getter
+@Setter
 public class Treino {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

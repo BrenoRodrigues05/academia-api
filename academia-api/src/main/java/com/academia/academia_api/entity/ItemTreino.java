@@ -2,12 +2,16 @@ package com.academia.academia_api.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "itens_treino")
+@Getter
+@Setter
 public class ItemTreino {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
