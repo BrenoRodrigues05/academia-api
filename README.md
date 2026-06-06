@@ -1,6 +1,6 @@
 # 🏋️ Academia API
 
-Uma API REST desenvolvida com Spring Boot para gerenciamento de academias, permitindo o controle de alunos, planos e matrículas de forma segura, organizada e escalável.
+Uma API REST desenvolvida com Spring Boot para gerenciamento de academias, permitindo o controle de alunos, planos, matrículas, personais, treinos e exercícios de forma segura, organizada e escalável.
 
 O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados e PostgreSQL como banco relacional.
 
@@ -10,21 +10,21 @@ O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em cam
 
 ### Backend
 
-- Java 21
-- Spring Boot
-- Spring Data JPA
-- Hibernate
-- Spring Validation
-- PostgreSQL
-- Flyway
-- MapStruct
-- Lombok
-- Maven
+* Java 21
+* Spring Boot
+* Spring Data JPA
+* Hibernate
+* Spring Validation
+* PostgreSQL
+* Flyway
+* MapStruct
+* Lombok
+* Maven
 
 ### Segurança (Em desenvolvimento)
 
-- Spring Security
-- JWT Authentication
+* Spring Security
+* JWT Authentication
 
 ---
 
@@ -34,6 +34,13 @@ O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em cam
 src/main/java/com/academia/academia_api
 
 ├── controllers
+│   ├── AlunoController
+│   ├── PlanoController
+│   ├── MatriculaController
+│   ├── PersonalController
+│   ├── TreinoController
+│   ├── ExercicioController
+│   └── ItemTreinoController
 │
 ├── DTOs
 │
@@ -41,6 +48,10 @@ src/main/java/com/academia/academia_api
 │   ├── Aluno
 │   ├── Plano
 │   ├── Matricula
+│   ├── Personal
+│   ├── Treino
+│   ├── Exercicio
+│   ├── ItemTreino
 │   └── enums
 │
 ├── mappings
@@ -76,14 +87,14 @@ PostgreSQL
 
 ### Responsabilidades
 
-| Camada | Responsabilidade |
-|----------|----------|
-| Controller | Receber requisições HTTP |
-| DTO | Transferência de dados |
-| Service | Regras de negócio |
-| Mapper | Conversão DTO ↔ Entity |
-| Repository | Acesso ao banco |
-| Entity | Representação das tabelas |
+| Camada     | Responsabilidade          |
+| ---------- | ------------------------- |
+| Controller | Receber requisições HTTP  |
+| DTO        | Transferência de dados    |
+| Service    | Regras de negócio         |
+| Mapper     | Conversão DTO ↔ Entity    |
+| Repository | Acesso ao banco           |
+| Entity     | Representação das tabelas |
 
 ---
 
@@ -93,16 +104,14 @@ PostgreSQL
 
 Representa os alunos cadastrados na academia.
 
-### Campos
-
-| Campo | Tipo |
-|----------|----------|
-| id | Long |
-| nome | String |
-| email | String |
+| Campo          | Tipo      |
+| -------------- | --------- |
+| id             | Long      |
+| nome           | String    |
+| email          | String    |
 | dataNascimento | LocalDate |
-| telefone | String |
-| sexo | SexoEnum |
+| telefone       | String    |
+| sexo           | SexoEnum  |
 
 ---
 
@@ -110,15 +119,13 @@ Representa os alunos cadastrados na academia.
 
 Representa os planos disponíveis para contratação.
 
-### Campos
-
-| Campo | Tipo |
-|----------|----------|
-| id | Long |
-| nome | String |
-| descricao | String |
-| valor | BigDecimal |
-| tipo | TipoPlano |
+| Campo     | Tipo       |
+| --------- | ---------- |
+| id        | Long       |
+| nome      | String     |
+| descricao | String     |
+| valor     | BigDecimal |
+| tipo      | TipoPlano  |
 
 ---
 
@@ -126,14 +133,73 @@ Representa os planos disponíveis para contratação.
 
 Representa o vínculo entre um aluno e um plano.
 
-### Campos
-
-| Campo | Tipo |
-|----------|----------|
-| id | Long |
-| aluno | Aluno |
-| plano | Plano |
+| Campo | Tipo    |
+| ----- | ------- |
+| id    | Long    |
+| aluno | Aluno   |
+| plano | Plano   |
 | ativa | Boolean |
+
+---
+
+## 🏋️ Personal
+
+Representa os profissionais responsáveis pela criação e gerenciamento dos treinos.
+
+| Campo         | Tipo     |
+| ------------- | -------- |
+| id            | Long     |
+| nome          | String   |
+| sobrenome     | String   |
+| email         | String   |
+| telefone      | String   |
+| cref          | String   |
+| especialidade | String   |
+| ativo         | Boolean  |
+| sexo          | SexoEnum |
+
+---
+
+## 📋 Treino
+
+Representa a ficha de treino atribuída a um aluno.
+
+| Campo       | Tipo     |
+| ----------- | -------- |
+| id          | Long     |
+| nome        | String   |
+| observacoes | String   |
+| ativo       | Boolean  |
+| personal    | Personal |
+| aluno       | Aluno    |
+
+---
+
+## 💪 Exercício
+
+Representa um exercício disponível para utilização em treinos.
+
+| Campo         | Tipo   |
+| ------------- | ------ |
+| id            | Long   |
+| nome          | String |
+| grupoMuscular | String |
+| descricao     | String |
+
+---
+
+## 📝 ItemTreino
+
+Representa um exercício dentro de um treino.
+
+| Campo            | Tipo      |
+| ---------------- | --------- |
+| id               | Long      |
+| series           | Integer   |
+| repeticoes       | Integer   |
+| descansoSegundos | Integer   |
+| treino           | Treino    |
+| exercicio        | Exercicio |
 
 ---
 
@@ -146,6 +212,28 @@ Aluno
                            │
                            ▼
                          Plano
+
+
+Personal
+    │
+    │ cria
+    ▼
+ Treino
+    │
+    │ pertence
+    ▼
+  Aluno
+
+
+Treino
+   │
+   │ 1:N
+   ▼
+ItemTreino
+   │
+   │ N:1
+   ▼
+Exercicio
 ```
 
 ---
@@ -154,61 +242,90 @@ Aluno
 
 ## Matrículas
 
-- Um aluno só pode possuir uma matrícula ativa.
-- Não é permitido criar matrícula para aluno inexistente.
-- Não é permitido criar matrícula para plano inexistente.
-- Matrículas são desativadas ao invés de removidas fisicamente.
+* Um aluno só pode possuir uma matrícula ativa.
+* Não é permitido criar matrícula para aluno inexistente.
+* Não é permitido criar matrícula para plano inexistente.
+* Matrículas são desativadas ao invés de removidas fisicamente.
+
+---
 
 ## Planos
 
-- Não permite busca com ID inválido.
-- Não permite valores negativos.
-- Permite busca por:
-  - Nome
-  - Tipo
-  - Descrição
-  - Valor
+* Não permite busca com ID inválido.
+* Não permite valores negativos.
+* Permite busca por:
+
+  * Nome
+  * Tipo
+  * Descrição
+  * Valor
+
+---
 
 ## Alunos
 
-- Campos obrigatórios são validados.
-- Utilização de DTOs para entrada e saída de dados.
+* Campos obrigatórios são validados.
+* Utilização de DTOs para entrada e saída de dados.
+
+---
+
+## Personais
+
+* E-mail único.
+* CREF único.
+* Não permite cadastro duplicado.
+* Controle de status ativo/inativo.
+* Não permite exclusão de personal ativo.
+
+---
+
+## Treinos
+
+* Um aluno pode possuir apenas um treino ativo.
+* Todo treino deve possuir um personal responsável.
+* Todo treino deve possuir um aluno associado.
+* Controle de ativação/desativação.
+* Futuramente:
+
+  * Apenas o personal criador poderá editar.
+  * Apenas o personal criador poderá excluir.
+  * SuperAdmin poderá sobrescrever permissões.
+
+---
+
+## Exercícios
+
+* Catálogo reutilizável.
+* Busca por nome.
+* Busca por grupo muscular.
+
+---
+
+## Itens de Treino
+
+* Todo item deve estar associado a um treino.
+* Todo item deve estar associado a um exercício.
+* Um exercício não pode ser repetido no mesmo treino.
+* Controle de séries.
+* Controle de repetições.
+* Controle de descanso.
 
 ---
 
 # 📋 Endpoints
 
----
-
 ## 👤 Alunos
 
-### Listar alunos
-
 ```http
-GET /api/alunos
-```
+GET    /api/alunos
+GET    /api/alunos/{id}
+GET    /api/alunos/busca-nome
+GET    /api/alunos/busca-email
+GET    /api/alunos/busca-sexo
+GET    /api/alunos/busca-idade
 
-### Buscar aluno por ID
-
-```http
-GET /api/alunos/{id}
-```
-
-### Criar aluno
-
-```http
-POST /api/alunos
-```
-
-### Atualizar aluno
-
-```http
-PUT /api/alunos/{id}
-```
-
-### Excluir aluno
-
-```http
+POST   /api/alunos
+PUT    /api/alunos/{id}
 DELETE /api/alunos/{id}
 ```
 
@@ -216,57 +333,17 @@ DELETE /api/alunos/{id}
 
 ## 💳 Planos
 
-### Listar planos
-
 ```http
-GET /api/planos
-```
+GET    /api/planos
+GET    /api/planos/{id}
 
-### Buscar por ID
+GET    /api/planos/busca-nome
+GET    /api/planos/busca-valor
+GET    /api/planos/busca-descricao
+GET    /api/planos/busca-tipo
 
-```http
-GET /api/planos/{id}
-```
-
-### Buscar por nome
-
-```http
-GET /api/planos/busca-nome?nome=Premium
-```
-
-### Buscar por valor
-
-```http
-GET /api/planos/busca-valor?valor=129.90
-```
-
-### Buscar por descrição
-
-```http
-GET /api/planos/busca-descricao?descricao=Musculacao
-```
-
-### Buscar por tipo
-
-```http
-GET /api/planos/busca-tipo?tipo=MENSAL
-```
-
-### Criar plano
-
-```http
-POST /api/planos
-```
-
-### Atualizar plano
-
-```http
-PUT /api/planos/{id}
-```
-
-### Remover plano
-
-```http
+POST   /api/planos
+PUT    /api/planos/{id}
 DELETE /api/planos/{id}
 ```
 
@@ -274,28 +351,82 @@ DELETE /api/planos/{id}
 
 ## 📝 Matrículas
 
-### Listar matrículas
-
 ```http
-GET /api/matriculas
-```
+GET    /api/matriculas
+GET    /api/matriculas/{id}
 
-### Buscar matrícula por ID
-
-```http
-GET /api/matriculas/{id}
-```
-
-### Criar matrícula
-
-```http
-POST /api/matriculas
-```
-
-### Desativar matrícula
-
-```http
+POST   /api/matriculas
 DELETE /api/matriculas/{id}
+```
+
+---
+
+## 🏋️ Personais
+
+```http
+GET    /api/personais
+GET    /api/personais/{id}
+
+GET    /api/personais/busca-email
+GET    /api/personais/busca-cref
+GET    /api/personais/busca-nome
+
+GET    /api/personais/ativos
+GET    /api/personais/inativos
+
+POST   /api/personais
+PUT    /api/personais/{id}
+PATCH  /api/personais/{id}/status
+DELETE /api/personais/{id}
+```
+
+---
+
+## 📋 Treinos
+
+```http
+GET    /api/treinos
+GET    /api/treinos/{id}
+
+GET    /api/treinos/aluno/{alunoId}
+GET    /api/treinos/personal/{personalId}
+
+POST   /api/treinos
+PUT    /api/treinos/{id}
+PATCH  /api/treinos/{id}/status
+DELETE /api/treinos/{id}
+```
+
+---
+
+## 💪 Exercícios
+
+```http
+GET    /api/exercicios
+GET    /api/exercicios/{id}
+
+GET    /api/exercicios/busca-nome
+GET    /api/exercicios/grupo-muscular
+
+POST   /api/exercicios
+PUT    /api/exercicios/{id}
+DELETE /api/exercicios/{id}
+```
+
+---
+
+## 📝 Itens de Treino
+
+```http
+GET    /api/itens-treino
+GET    /api/itens-treino/{id}
+
+GET    /api/itens-treino/treino/{treinoId}
+GET    /api/itens-treino/exercicio/{exercicioId}
+
+POST   /api/itens-treino
+PUT    /api/itens-treino/{id}
+DELETE /api/itens-treino/{id}
 ```
 
 ---
@@ -317,6 +448,22 @@ PlanoResponseDTO
 
 MatriculaCreateDTO
 MatriculaResponseDTO
+
+PersonalCreateDTO
+PersonalUpdateDTO
+PersonalResponseDTO
+
+TreinoCreateDTO
+TreinoUpdateDTO
+TreinoResponseDTO
+
+ExercicioCreateDTO
+ExercicioUpdateDTO
+ExercicioResponseDTO
+
+ItemTreinoCreateDTO
+ItemTreinoUpdateDTO
+ItemTreinoResponseDTO
 ```
 
 ---
@@ -329,15 +476,15 @@ Utilizado para conversão automática entre DTOs e entidades.
 
 ```java
 @Mapper(componentModel = "spring")
-public interface PlanoMapper {
+public interface PersonalMapper {
 
-    PlanoResponseDTO toResponseDTO(Plano plano);
+    PersonalResponseDTO toResponseDTO(Personal personal);
 
-    Plano toEntity(PlanoCreateDTO dto);
+    Personal toEntity(PersonalCreateDTO dto);
 
     void updateEntityFromDTO(
-            PlanoUpdateDTO dto,
-            @MappingTarget Plano plano);
+            PersonalUpdateDTO dto,
+            @MappingTarget Personal personal);
 }
 ```
 
@@ -350,7 +497,7 @@ public interface PlanoMapper {
 ### Configuração
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/academia
+spring.datasource.url=jdbc:postgresql://localhost:5432/academia_db
 spring.datasource.username=postgres
 spring.datasource.password=senha
 
@@ -373,9 +520,11 @@ src/main/resources/db/migration
 Exemplo:
 
 ```text
-V1__create_alunos.sql
-V2__create_planos.sql
-V3__create_matriculas.sql
+V1__create_alunos_planos_matriculas.sql
+V2__create_personais.sql
+V3__create_treinos.sql
+V4__create_exercicios.sql
+V5__create_itens_treino.sql
 ```
 
 ---
@@ -412,11 +561,13 @@ mvn spring-boot:run
 
 Em desenvolvimento:
 
-- Spring Security
-- JWT Authentication
-- Controle de acesso baseado em roles
-- Rotas protegidas
-- Autenticação via Bearer Token
+* Spring Security
+* JWT Authentication
+* Controle de acesso baseado em roles
+* Rotas protegidas
+* Autenticação via Bearer Token
+* Controle de permissões por Personal
+* SuperAdmin
 
 Fluxo planejado:
 
@@ -434,16 +585,21 @@ Rotas Protegidas
 
 # 🧪 Melhorias Futuras
 
-- [ ] Spring Security
-- [ ] JWT
-- [ ] Swagger/OpenAPI
-- [ ] Docker
-- [ ] Testes Unitários
-- [ ] Testes de Integração
-- [ ] Global Exception Handler
-- [ ] Paginação
-- [ ] Filtros Dinâmicos
-- [ ] Logs Centralizados
+* [ ] Spring Security
+* [ ] JWT
+* [ ] SuperAdmin
+* [ ] Controle de permissões por Personal
+* [ ] Histórico de treinos
+* [ ] Evolução de carga/peso
+* [ ] Upload de imagens dos exercícios
+* [ ] Swagger/OpenAPI
+* [ ] Docker
+* [ ] Testes Unitários
+* [ ] Testes de Integração
+* [ ] Global Exception Handler
+* [ ] Paginação
+* [ ] Filtros Dinâmicos
+* [ ] Logs Centralizados
 
 ---
 
@@ -451,16 +607,16 @@ Rotas Protegidas
 
 Durante o desenvolvimento foram aplicados conceitos como:
 
-- Arquitetura em Camadas
-- DTO Pattern
-- Repository Pattern
-- Service Layer Pattern
-- MapStruct
-- Injeção de Dependência
-- Validação de Dados
-- Boas Práticas REST
-- Tratamento de Regras de Negócio
-- Versionamento de Banco com Flyway
+* Arquitetura em Camadas
+* DTO Pattern
+* Repository Pattern
+* Service Layer Pattern
+* MapStruct
+* Injeção de Dependência
+* Validação de Dados
+* Boas Práticas REST
+* Tratamento de Regras de Negócio
+* Versionamento de Banco com Flyway
 
 ---
 
@@ -468,11 +624,11 @@ Durante o desenvolvimento foram aplicados conceitos como:
 
 ## Breno Rodrigues
 
-Desenvolvedor Backend Java
+Desenvolvedor Full Stack
 
 GitHub:
 
-:contentReference[oaicite:0]{index=0}
+https://github.com/BrenoRodrigues05
 
 ---
 
