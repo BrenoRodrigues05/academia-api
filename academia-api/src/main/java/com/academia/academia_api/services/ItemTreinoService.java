@@ -85,6 +85,11 @@ public class ItemTreinoService {
         Exercicio exercicio = exercicioRepository.findById(dto.getExercicioId())
                 .orElseThrow(() -> new RuntimeException("Exercício não encontrado."));
 
+        if(itemTreinoRepository.existsByTreinoIdAndExercicioId(dto.getTreinoId(), dto.getExercicioId())) {
+            throw new RuntimeException(
+                    "Esse exercício já foi adicionado ao treino.");
+        }
+
         ItemTreino item = itemTreinoMapper.toEntity(dto);
 
         item.setTreino(treino);

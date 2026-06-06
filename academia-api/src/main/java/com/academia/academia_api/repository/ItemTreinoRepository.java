@@ -14,4 +14,6 @@ public interface ItemTreinoRepository extends JpaRepository<ItemTreino, Long> {
     List<ItemTreino> findByExercicioId(Long exercicioId);
 
     boolean existsByTreinoIdAndExercicioId(Long treinoId, Long exercicioId);
+
+    long countByTreinoId(Long treinoId);
 }
