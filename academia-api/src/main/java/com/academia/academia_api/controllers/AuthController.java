@@ -1,10 +1,14 @@
 package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.AuthDTO;
+import com.academia.academia_api.DTOs.RegisterAlunoDTO;
+import com.academia.academia_api.repository.UsuarioRepository;
+import com.academia.academia_api.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +20,14 @@ public class AuthController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity login (@RequestBody @Valid AuthDTO data) {
@@ -26,4 +38,12 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(
+            @RequestBody @Valid RegisterAlunoDTO dto) {
+
+        authService.registerAluno(dto);
+
+        return ResponseEntity.status(201).build();
+    }
 }
