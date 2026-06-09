@@ -1,11 +1,14 @@
 package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.AuthDTO;
+import com.academia.academia_api.DTOs.RegisterAdminDTO;
 import com.academia.academia_api.DTOs.RegisterAlunoDTO;
+import com.academia.academia_api.DTOs.RegisterPersonalDTO;
 import com.academia.academia_api.repository.UsuarioRepository;
 import com.academia.academia_api.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +46,26 @@ public class AuthController {
             @RequestBody @Valid RegisterAlunoDTO dto) {
 
         authService.registerAluno(dto);
+
+        return ResponseEntity.status(201).build();
+    }
+
+    @PostMapping("/personais")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<?> createPersonal(
+            @RequestBody RegisterPersonalDTO dto) {
+
+        authService.registerPersonal(dto);
+
+        return ResponseEntity.status(201).build();
+    }
+
+    @PostMapping("/admins")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<?> createAdmin(
+            @RequestBody RegisterAdminDTO dto) {
+
+        authService.registerAdmin(dto);
 
         return ResponseEntity.status(201).build();
     }
