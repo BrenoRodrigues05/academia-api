@@ -30,4 +30,7 @@ public class Aluno {
    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
    private SexoEnum sexo;
+    @OneToOne
+    @JoinColumn(name = "usuario_id", unique = true)
+    private Usuarios usuario;
 }
