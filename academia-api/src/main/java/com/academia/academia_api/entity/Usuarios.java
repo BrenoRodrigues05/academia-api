@@ -27,11 +27,22 @@ public class Usuarios implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, unique = true)
     private String login;
+    @Column(nullable = false)
     private String senha;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserRole role;
+    @Column(nullable = false)
+    private Boolean ativo = true;
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -42,9 +53,7 @@ public class Usuarios implements UserDetails {
                     new SimpleGrantedAuthority("ROLE_ALUNO"));
         }
         if(this.role == UserRole.ADMIN){
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
-                    new SimpleGrantedAuthority("ROLE_PERSONAL"),
-                    new SimpleGrantedAuthority("ROLE_ALUNO"));
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
         if (this.role == UserRole.PERSONAL) {
             return List.of(
