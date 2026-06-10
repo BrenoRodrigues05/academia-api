@@ -1,13 +1,8 @@
-Aqui está o arquivo completo, pronto no bloco abaixo para você copiar tudo de uma vez clicando no botão de copiar:
-
-```markdown
 # 🏋️ Academia API
 
 Uma API REST desenvolvida com Spring Boot para gerenciamento de academias, permitindo o controle de alunos, planos, matrículas, personais, treinos e exercícios de forma segura, organizada e escalável.
 
 O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados e PostgreSQL como banco relacional.
-
----
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -26,11 +21,9 @@ O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em cam
 * Lombok
 * Maven
 
----
 
 ## 📂 Estrutura do Projeto
 
-```text
 src/main/java/com/academia/academia_api
 
 ├── controllers
@@ -66,15 +59,11 @@ src/main/java/com/academia/academia_api
 │
 └── AcademiaApiApplication
 
-```
-
----
 
 ## 🏛️ Arquitetura
 
 A aplicação segue uma arquitetura em camadas:
 
-```text
 Controller (Filtros JWT / Security)
      ↓
     DTO
@@ -89,7 +78,6 @@ Mapper (MapStruct)
      ↓
  PostgreSQL
 
-```
 
 ### Responsabilidades
 
@@ -117,11 +105,9 @@ Representa as credenciais de acesso ao sistema e define o nível de permissão (
 | senha | String (Criptografada com BCrypt) |
 | role | Role (Enum) |
 
----
 
 # 🔄 Relacionamentos
 
-```text
    ┌──────────────────┐
    │     Usuário      │
    └─┬──────────────┬─┘
@@ -139,9 +125,6 @@ Representa as credenciais de acesso ao sistema e define o nível de permissão (
      ▼
  ItemTreino ◄───► Exercicio (N:1)
 
-```
-
----
 
 # 📌 Regras de Negócio & Segurança
 
@@ -159,7 +142,6 @@ A API implementa controle de acesso baseado em perfis de usuários (`Role-Based 
 * Todo **Aluno** criado pode possuir uma conta de **Usuário** vinculada (1:1) com a role `ALUNO` para acessar o sistema.
 * Todo **Personal** criado pode possuir uma conta de **Usuário** vinculada (1:1) com a role `PERSONAL`.
 
----
 
 ## Matrículas
 
@@ -177,69 +159,49 @@ A API implementa controle de acesso baseado em perfis de usuários (`Role-Based 
 * Um aluno pode possuir apenas um treino ativo por vez.
 * Todo treino deve possuir um personal responsável e um aluno associado.
 
----
 
 # 📋 Endpoints Principais
 
 ## 🔐 Autenticação
 
-```http
 POST   /api/auth/login    -> Retorna o Bearer JWT Token válido
-
-```
 
 ## 👤 Alunos
 
-```http
 GET    /api/alunos
 GET    /api/alunos/{id}
 POST   /api/alunos
 PUT    /api/alunos/{id}
 DELETE /api/alunos/{id}
 
-```
-
 ## 💳 Planos
 
-```http
 GET    /api/planos
 POST   /api/planos
 PUT    /api/planos/{id}
 DELETE /api/planos/{id}
 
-```
 
 ## 📝 Matrículas
 
-```http
 GET    /api/matriculas
 POST   /api/matriculas
 DELETE /api/matriculas/{id}
 
-```
-
 ## 🏋️ Personais
 
-```http
 GET    /api/personais
 POST   /api/personais
 PUT    /api/personais/{id}
 PATCH  /api/personais/{id}/status
 DELETE /api/personais/{id}
 
-```
-
 ## 📋 Treinos
 
-```http
 GET    /api/treinos
 POST   /api/treinos
 PUT    /api/treinos/{id}
 PATCH  /api/treinos/{id}/status
-
-```
-
----
 
 # 🛢️ Banco de Dados & Versionamento (Flyway)
 
@@ -247,7 +209,6 @@ O projeto utiliza **Flyway** para estruturar e migrar o banco de dados evolutiva
 
 ### Estrutura de Migrations
 
-```text
 V1__create_alunos_planos_matriculas.sql
 V2__create_personais.sql
 V3__create_treinos.sql
@@ -255,19 +216,13 @@ V4__create_exercicios.sql
 V5__create_itens_treino.sql
 V6__create_usuarios_and_security_setup.sql
 
-```
-
----
 
 # ⚙️ Como Executar
 
 ## 1. Clonar projeto
 
-```bash
 git clone [https://github.com/BrenoRodrigues05/academia-api.git](https://github.com/BrenoRodrigues05/academia-api.git)
 cd academia-api
-
-```
 
 ## 2. Configurar Banco de Dados
 
@@ -275,11 +230,8 @@ Ajuste as credenciais do PostgreSQL em `src/main/resources/application.propertie
 
 ## 3. Compilar e Executar
 
-```bash
 mvn clean install
 mvn spring-boot:run
-
-```
 
 ## 4. Primeiro Acesso (Credenciais do SuperAdmin)
 
@@ -289,8 +241,6 @@ Após rodar o projeto pela primeira vez, o banco de dados será populado automat
 * **Senha:** `Academia@2026!`
 
 Com o token gerado, inclua-o no cabeçalho `Authorization` das requisições subsequentes para liberar o cadastro de novos usuários, `ADMIN`, `PERSONAL` ou `ALUNO`.
-
----
 
 # 🧪 Roadmap de Desenvolvimento
 
@@ -307,8 +257,6 @@ Com o token gerado, inclua-o no cabeçalho `Authorization` das requisições sub
 * [ ] Testes Unitários e de Integração
 * [ ] Global Exception Handler customizado
 
----
-
 # 👨‍💻 Autor
 
 ## Breno Rodrigues
@@ -316,7 +264,3 @@ Com o token gerado, inclua-o no cabeçalho `Authorization` das requisições sub
 Desenvolvedor Full Stack
 
 GitHub: [BrenoRodrigues05](https://github.com/BrenoRodrigues05)
-
-```
-
-```
