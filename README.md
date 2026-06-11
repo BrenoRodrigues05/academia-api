@@ -4,14 +4,14 @@ Uma API REST desenvolvida com Spring Boot para gerenciamento de academias, permi
 
 O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados e PostgreSQL como banco relacional.
 
----
-
 ## 🚀 Tecnologias Utilizadas
 
-### Backend
+### Backend & Segurança
 
 * Java 21
-* Spring Boot
+* Spring Boot 3
+* Spring Security (Autenticação e Autorização)
+* JWT (JSON Web Token)
 * Spring Data JPA
 * Hibernate
 * Spring Validation
@@ -21,19 +21,13 @@ O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em cam
 * Lombok
 * Maven
 
-### Segurança (Em desenvolvimento)
-
-* Spring Security
-* JWT Authentication
-
----
 
 ## 📂 Estrutura do Projeto
 
-```text
 src/main/java/com/academia/academia_api
 
 ├── controllers
+│   ├── AuthController
 │   ├── AlunoController
 │   ├── PlanoController
 │   ├── MatriculaController
@@ -45,6 +39,7 @@ src/main/java/com/academia/academia_api
 ├── DTOs
 │
 ├── entity
+│   ├── Usuario
 │   ├── Aluno
 │   ├── Plano
 │   ├── Matricula
@@ -53,6 +48,8 @@ src/main/java/com/academia/academia_api
 │   ├── Exercicio
 │   ├── ItemTreino
 │   └── enums
+│       ├── Role (SUPER_ADMIN, ADMIN, PERSONAL, ALUNO)
+│       └── SexoEnum
 │
 ├── mappings
 │
@@ -61,564 +58,204 @@ src/main/java/com/academia/academia_api
 ├── services
 │
 └── AcademiaApiApplication
-```
 
----
 
 ## 🏛️ Arquitetura
 
 A aplicação segue uma arquitetura em camadas:
 
-```text
-Controller
-    ↓
-DTO
-    ↓
-Service
-    ↓
+Controller (Filtros JWT / Security)
+     ↓
+    DTO
+     ↓
+  Service
+     ↓
 Mapper (MapStruct)
-    ↓
-Entity
-    ↓
-Repository
-    ↓
-PostgreSQL
-```
+     ↓
+  Entity
+     ↓
+ Repository
+     ↓
+ PostgreSQL
+
 
 ### Responsabilidades
 
-| Camada     | Responsabilidade          |
-| ---------- | ------------------------- |
-| Controller | Receber requisições HTTP  |
-| DTO        | Transferência de dados    |
-| Service    | Regras de negócio         |
-| Mapper     | Conversão DTO ↔ Entity    |
-| Repository | Acesso ao banco           |
-| Entity     | Representação das tabelas |
+| Camada | Responsabilidade |
+| --- | --- |
+| Controller | Receber requisições HTTP e validar tokens/roles |
+| DTO | Transferência de dados |
+| Service | Regras de negócio |
+| Mapper | Conversão DTO ↔ Entity |
+| Repository | Acesso ao banco |
+| Entity | Representação das tabelas |
 
 ---
 
-# 📚 Entidades
+# 📚 Novas Entidades de Controle & Segurança
 
-## 👤 Aluno
+## 🔐 Usuário
 
-Representa os alunos cadastrados na academia.
+Representa as credenciais de acesso ao sistema e define o nível de permissão (Role).
 
-| Campo          | Tipo      |
-| -------------- | --------- |
-| id             | Long      |
-| nome           | String    |
-| email          | String    |
-| dataNascimento | LocalDate |
-| telefone       | String    |
-| sexo           | SexoEnum  |
+| Campo | Tipo |
+| --- | --- |
+| id | Long |
+| login | String (Único) |
+| senha | String (Criptografada com BCrypt) |
+| role | Role (Enum) |
 
----
-
-## 💳 Plano
-
-Representa os planos disponíveis para contratação.
-
-| Campo     | Tipo       |
-| --------- | ---------- |
-| id        | Long       |
-| nome      | String     |
-| descricao | String     |
-| valor     | BigDecimal |
-| tipo      | TipoPlano  |
-
----
-
-## 📝 Matrícula
-
-Representa o vínculo entre um aluno e um plano.
-
-| Campo | Tipo    |
-| ----- | ------- |
-| id    | Long    |
-| aluno | Aluno   |
-| plano | Plano   |
-| ativa | Boolean |
-
----
-
-## 🏋️ Personal
-
-Representa os profissionais responsáveis pela criação e gerenciamento dos treinos.
-
-| Campo         | Tipo     |
-| ------------- | -------- |
-| id            | Long     |
-| nome          | String   |
-| sobrenome     | String   |
-| email         | String   |
-| telefone      | String   |
-| cref          | String   |
-| especialidade | String   |
-| ativo         | Boolean  |
-| sexo          | SexoEnum |
-
----
-
-## 📋 Treino
-
-Representa a ficha de treino atribuída a um aluno.
-
-| Campo       | Tipo     |
-| ----------- | -------- |
-| id          | Long     |
-| nome        | String   |
-| observacoes | String   |
-| ativo       | Boolean  |
-| personal    | Personal |
-| aluno       | Aluno    |
-
----
-
-## 💪 Exercício
-
-Representa um exercício disponível para utilização em treinos.
-
-| Campo         | Tipo   |
-| ------------- | ------ |
-| id            | Long   |
-| nome          | String |
-| grupoMuscular | String |
-| descricao     | String |
-
----
-
-## 📝 ItemTreino
-
-Representa um exercício dentro de um treino.
-
-| Campo            | Tipo      |
-| ---------------- | --------- |
-| id               | Long      |
-| series           | Integer   |
-| repeticoes       | Integer   |
-| descansoSegundos | Integer   |
-| treino           | Treino    |
-| exercicio        | Exercicio |
-
----
 
 # 🔄 Relacionamentos
 
-```text
-Aluno
-   │
-   └─────► Matrícula ◄─────┐
-                           │
-                           ▼
-                         Plano
+   ┌──────────────────┐
+   │     Usuário      │
+   └─┬──────────────┬─┘
+     │ 1:1          │ 1:1
+     ▼              ▼
+   Aluno         Personal
+     │              │
+     ├─► Matrícula  │ cria
+     │      │       ▼
+     │      ▼    Treino ◄─────┘
+     ▼    Plano     │
+   Aluno ◄──────────┘ pertence
+     │
+     │ 1:N
+     ▼
+ ItemTreino ◄───► Exercicio (N:1)
 
 
-Personal
-    │
-    │ cria
-    ▼
- Treino
-    │
-    │ pertence
-    ▼
-  Aluno
+# 📌 Regras de Negócio & Segurança
 
+## 🔒 Controle de Acesso (Roles)
 
-Treino
-   │
-   │ 1:N
-   ▼
-ItemTreino
-   │
-   │ N:1
-   ▼
-Exercicio
-```
+A API implementa controle de acesso baseado em perfis de usuários (`Role-Based Access Control - RBAC`):
 
----
+* **SUPER_ADMIN**: Possui acesso total ao sistema, gerenciamento de administradores e configurações globais. O sistema inicializa automaticamente um usuário mestre na primeira execução para garantir o acesso inicial.
+* **ADMIN**: Gerencia o funcionamento da academia (Alunos, Personais, Planos e Matrículas).
+* **PERSONAL**: Possui permissão para criar, editar e gerenciar treinos e itens de treino para os alunos.
+* **ALUNO**: Perfil com acesso de leitura para visualizar seus próprios treinos, dados cadastrais e status da matrícula.
 
-# 📌 Regras de Negócio
+## 👤 Vínculos de Usuários
+
+* Todo **Aluno** criado pode possuir uma conta de **Usuário** vinculada (1:1) com a role `ALUNO` para acessar o sistema.
+* Todo **Personal** criado pode possuir uma conta de **Usuário** vinculada (1:1) com a role `PERSONAL`.
+
 
 ## Matrículas
 
 * Um aluno só pode possuir uma matrícula ativa.
-* Não é permitido criar matrícula para aluno inexistente.
-* Não é permitido criar matrícula para plano inexistente.
+* Não é permitido criar matrícula para aluno ou plano inexistente.
 * Matrículas são desativadas ao invés de removidas fisicamente.
-
----
-
-## Planos
-
-* Não permite busca com ID inválido.
-* Não permite valores negativos.
-* Permite busca por:
-
-  * Nome
-  * Tipo
-  * Descrição
-  * Valor
-
----
-
-## Alunos
-
-* Campos obrigatórios são validados.
-* Utilização de DTOs para entrada e saída de dados.
-
----
 
 ## Personais
 
-* E-mail único.
-* CREF único.
-* Não permite cadastro duplicado.
-* Controle de status ativo/inativo.
+* E-mail e CREF únicos.
 * Não permite exclusão de personal ativo.
-
----
 
 ## Treinos
 
-* Um aluno pode possuir apenas um treino ativo.
-* Todo treino deve possuir um personal responsável.
-* Todo treino deve possuir um aluno associado.
-* Controle de ativação/desativação.
-* Futuramente:
+* Um aluno pode possuir apenas um treino ativo por vez.
+* Todo treino deve possuir um personal responsável e um aluno associado.
 
-  * Apenas o personal criador poderá editar.
-  * Apenas o personal criador poderá excluir.
-  * SuperAdmin poderá sobrescrever permissões.
 
----
+# 📋 Endpoints Principais
 
-## Exercícios
+## 🔐 Autenticação
 
-* Catálogo reutilizável.
-* Busca por nome.
-* Busca por grupo muscular.
-
----
-
-## Itens de Treino
-
-* Todo item deve estar associado a um treino.
-* Todo item deve estar associado a um exercício.
-* Um exercício não pode ser repetido no mesmo treino.
-* Controle de séries.
-* Controle de repetições.
-* Controle de descanso.
-
----
-
-# 📋 Endpoints
+POST   /api/auth/login    -> Retorna o Bearer JWT Token válido
 
 ## 👤 Alunos
 
-```http
 GET    /api/alunos
 GET    /api/alunos/{id}
-GET    /api/alunos/busca-nome
-GET    /api/alunos/busca-email
-GET    /api/alunos/busca-sexo
-GET    /api/alunos/busca-idade
-
 POST   /api/alunos
 PUT    /api/alunos/{id}
 DELETE /api/alunos/{id}
-```
-
----
 
 ## 💳 Planos
 
-```http
 GET    /api/planos
-GET    /api/planos/{id}
-
-GET    /api/planos/busca-nome
-GET    /api/planos/busca-valor
-GET    /api/planos/busca-descricao
-GET    /api/planos/busca-tipo
-
 POST   /api/planos
 PUT    /api/planos/{id}
 DELETE /api/planos/{id}
-```
 
----
 
 ## 📝 Matrículas
 
-```http
 GET    /api/matriculas
-GET    /api/matriculas/{id}
-
 POST   /api/matriculas
 DELETE /api/matriculas/{id}
-```
-
----
 
 ## 🏋️ Personais
 
-```http
 GET    /api/personais
-GET    /api/personais/{id}
-
-GET    /api/personais/busca-email
-GET    /api/personais/busca-cref
-GET    /api/personais/busca-nome
-
-GET    /api/personais/ativos
-GET    /api/personais/inativos
-
 POST   /api/personais
 PUT    /api/personais/{id}
 PATCH  /api/personais/{id}/status
 DELETE /api/personais/{id}
-```
-
----
 
 ## 📋 Treinos
 
-```http
 GET    /api/treinos
-GET    /api/treinos/{id}
-
-GET    /api/treinos/aluno/{alunoId}
-GET    /api/treinos/personal/{personalId}
-
 POST   /api/treinos
 PUT    /api/treinos/{id}
 PATCH  /api/treinos/{id}/status
-DELETE /api/treinos/{id}
-```
 
----
+# 🛢️ Banco de Dados & Versionamento (Flyway)
 
-## 💪 Exercícios
+O projeto utiliza **Flyway** para estruturar e migrar o banco de dados evolutivamente.
 
-```http
-GET    /api/exercicios
-GET    /api/exercicios/{id}
+### Estrutura de Migrations
 
-GET    /api/exercicios/busca-nome
-GET    /api/exercicios/grupo-muscular
-
-POST   /api/exercicios
-PUT    /api/exercicios/{id}
-DELETE /api/exercicios/{id}
-```
-
----
-
-## 📝 Itens de Treino
-
-```http
-GET    /api/itens-treino
-GET    /api/itens-treino/{id}
-
-GET    /api/itens-treino/treino/{treinoId}
-GET    /api/itens-treino/exercicio/{exercicioId}
-
-POST   /api/itens-treino
-PUT    /api/itens-treino/{id}
-DELETE /api/itens-treino/{id}
-```
-
----
-
-# 📦 DTOs
-
-O projeto utiliza DTOs para desacoplar as entidades da API.
-
-### Exemplos
-
-```text
-AlunoCreateDTO
-AlunoUpdateDTO
-AlunoResponseDTO
-
-PlanoCreateDTO
-PlanoUpdateDTO
-PlanoResponseDTO
-
-MatriculaCreateDTO
-MatriculaResponseDTO
-
-PersonalCreateDTO
-PersonalUpdateDTO
-PersonalResponseDTO
-
-TreinoCreateDTO
-TreinoUpdateDTO
-TreinoResponseDTO
-
-ExercicioCreateDTO
-ExercicioUpdateDTO
-ExercicioResponseDTO
-
-ItemTreinoCreateDTO
-ItemTreinoUpdateDTO
-ItemTreinoResponseDTO
-```
-
----
-
-# 🔄 MapStruct
-
-Utilizado para conversão automática entre DTOs e entidades.
-
-### Exemplo
-
-```java
-@Mapper(componentModel = "spring")
-public interface PersonalMapper {
-
-    PersonalResponseDTO toResponseDTO(Personal personal);
-
-    Personal toEntity(PersonalCreateDTO dto);
-
-    void updateEntityFromDTO(
-            PersonalUpdateDTO dto,
-            @MappingTarget Personal personal);
-}
-```
-
----
-
-# 🛢️ Banco de Dados
-
-## PostgreSQL
-
-### Configuração
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/academia_db
-spring.datasource.username=postgres
-spring.datasource.password=senha
-
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=true
-```
-
----
-
-# 🛫 Flyway
-
-O projeto utiliza Flyway para versionamento do banco de dados.
-
-### Estrutura
-
-```text
-src/main/resources/db/migration
-```
-
-Exemplo:
-
-```text
 V1__create_alunos_planos_matriculas.sql
 V2__create_personais.sql
 V3__create_treinos.sql
 V4__create_exercicios.sql
 V5__create_itens_treino.sql
-```
+V6__create_usuarios_and_security_setup.sql
 
----
 
 # ⚙️ Como Executar
 
-## Clonar projeto
+## 1. Clonar projeto
 
-```bash
-git clone https://github.com/BrenoRodrigues05/academia-api.git
-```
-
-## Entrar na pasta
-
-```bash
+git clone [https://github.com/BrenoRodrigues05/academia-api.git](https://github.com/BrenoRodrigues05/academia-api.git)
 cd academia-api
-```
 
-## Compilar
+## 2. Configurar Banco de Dados
 
-```bash
+Ajuste as credenciais do PostgreSQL em `src/main/resources/application.properties`.
+
+## 3. Compilar e Executar
+
 mvn clean install
-```
-
-## Executar
-
-```bash
 mvn spring-boot:run
-```
 
----
+## 4. Primeiro Acesso (Credenciais do SuperAdmin)
 
-# 🔒 Segurança (Roadmap)
+Após rodar o projeto pela primeira vez, o banco de dados será populado automaticamente com o primeiro usuário de acesso total. Utilize o endpoint `/api/auth/login` com a requisição contendo as seguintes credenciais para gerar o seu Bearer Token JWT:
 
-Em desenvolvimento:
+* **Login:** `superadmin`
+* **Senha:** `Academia@2026!`
 
-* Spring Security
-* JWT Authentication
-* Controle de acesso baseado em roles
-* Rotas protegidas
-* Autenticação via Bearer Token
-* Controle de permissões por Personal
-* SuperAdmin
+Com o token gerado, inclua-o no cabeçalho `Authorization` das requisições subsequentes para liberar o cadastro de novos usuários, `ADMIN`, `PERSONAL` ou `ALUNO`.
 
-Fluxo planejado:
+# 🧪 Roadmap de Desenvolvimento
 
-```text
-Login
-  ↓
-JWT Token
-  ↓
-Bearer Token
-  ↓
-Rotas Protegidas
-```
-
----
-
-# 🧪 Melhorias Futuras
-
-* [ ] Spring Security
-* [ ] JWT
-* [ ] SuperAdmin
-* [ ] Controle de permissões por Personal
-* [ ] Histórico de treinos
+* ✅ Spring Security configurado
+* ✅ Autenticação via JWT Token
+* ✅ Controle de acesso baseado em Roles (`SUPER_ADMIN`, `ADMIN`, `PERSONAL`, `ALUNO`)
+* ✅ Relacionamentos Usuário ↔ Aluno e Usuário ↔ Personal
+* ✅ Inicialização automática do SuperAdmin padrão
+* [ ] Histórico de treinos do aluno
 * [ ] Evolução de carga/peso
 * [ ] Upload de imagens dos exercícios
-* [ ] Swagger/OpenAPI
-* [ ] Docker
-* [ ] Testes Unitários
-* [ ] Testes de Integração
-* [ ] Global Exception Handler
-* [ ] Paginação
-* [ ] Filtros Dinâmicos
-* [ ] Logs Centralizados
-
----
-
-# 📈 Evolução Técnica Aplicada
-
-Durante o desenvolvimento foram aplicados conceitos como:
-
-* Arquitetura em Camadas
-* DTO Pattern
-* Repository Pattern
-* Service Layer Pattern
-* MapStruct
-* Injeção de Dependência
-* Validação de Dados
-* Boas Práticas REST
-* Tratamento de Regras de Negócio
-* Versionamento de Banco com Flyway
-
----
+* [ ] Documentação interativa com Swagger/OpenAPI
+* [ ] Dockerização do projeto (Dockerfile e docker-compose)
+* [ ] Testes Unitários e de Integração
+* [ ] Global Exception Handler customizado
 
 # 👨‍💻 Autor
 
@@ -626,12 +263,4 @@ Durante o desenvolvimento foram aplicados conceitos como:
 
 Desenvolvedor Full Stack
 
-GitHub:
-
-https://github.com/BrenoRodrigues05
-
----
-
-## ⭐ Projeto em evolução
-
-Este projeto está sendo desenvolvido com foco em aprendizado contínuo e aplicação de boas práticas utilizadas em projetos Java/Spring Boot do mercado.
+GitHub: [BrenoRodrigues05](https://github.com/BrenoRodrigues05)
