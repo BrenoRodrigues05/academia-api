@@ -1,8 +1,7 @@
 package com.academia.academia_api.controllers;
-import com.academia.academia_api.DTOs.AuthDTO;
-import com.academia.academia_api.DTOs.RegisterAdminDTO;
-import com.academia.academia_api.DTOs.RegisterAlunoDTO;
-import com.academia.academia_api.DTOs.RegisterPersonalDTO;
+import com.academia.academia_api.DTOs.*;
+import com.academia.academia_api.entity.Usuarios;
+import com.academia.academia_api.infra.security.TokenService;
 import com.academia.academia_api.repository.UsuarioRepository;
 import com.academia.academia_api.services.AuthService;
 import jakarta.validation.Valid;
@@ -27,6 +26,9 @@ public class AuthController {
     private AuthService authService;
 
     @Autowired
+    private TokenService tokenService;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -37,8 +39,15 @@ public class AuthController {
 
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.senha());
         var authentication = this.authenticationManager.authenticate(usernamePassword);
+        var usuario =
+                (Usuarios) authentication.getPrincipal();
 
-        return ResponseEntity.ok().build();
+        String token =
+                tokenService.generateToken(usuario);
+
+        return ResponseEntity.ok(
+                new LoginResponseDTO(token)
+        );
     }
 
     @PostMapping("/register")
