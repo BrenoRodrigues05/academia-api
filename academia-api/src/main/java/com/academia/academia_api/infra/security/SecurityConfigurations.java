@@ -35,7 +35,7 @@ public class SecurityConfigurations {
 
                         // Alunos
                         .requestMatchers(HttpMethod.GET, "/api/alunos/**")
-                        .hasAnyRole("ADMIN", "PERSONAL")
+                        .hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
 
                         .requestMatchers(HttpMethod.POST, "/api/alunos")
                         .hasAnyRole("ADMIN")
@@ -62,6 +62,17 @@ public class SecurityConfigurations {
 
                         .requestMatchers(HttpMethod.DELETE, "/api/treinos/**")
                         .hasAnyRole("ADMIN", "PERSONAL")
+
+                        // Planos
+                        .requestMatchers(HttpMethod.GET, "/api/planos/**").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
+                        .requestMatchers(HttpMethod.POST, "/api/planos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/planos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/planos/**").hasRole("ADMIN")
+
+                        // Matrículas
+                        .requestMatchers(HttpMethod.GET, "/api/matriculas/**").hasAnyRole("ADMIN", "PERSONAL")
+                        .requestMatchers(HttpMethod.POST, "/api/matriculas").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/matriculas/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
