@@ -4,9 +4,12 @@ import com.academia.academia_api.DTOs.AlunoCreateDTO;
 import com.academia.academia_api.DTOs.AlunoResponseDTO;
 import com.academia.academia_api.DTOs.AlunoUpdateDTO;
 import com.academia.academia_api.entity.Aluno;
+import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.SexoEnum;
+import com.academia.academia_api.entity.enums.UserRole;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,6 +57,8 @@ public class AlunoService {
 
         Aluno alunoExistente = alunoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado para atualização."));
+
+        validarPermissaoAluno(alunoExistente);
 
         alunoMapper.updateEntityFromDTO(updateDTO, alunoExistente);
 
@@ -130,5 +135,30 @@ public class AlunoService {
         return buscaAlunos.stream()
                 .map(alunoMapper::toResponseDTO)
                 .toList();
+    }
+
+    private Usuarios getUsuarioLogado() {
+
+        return (Usuarios)
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal();
+    }
+
+    private void validarPermissaoAluno(Aluno aluno) {
+
+        Usuarios usuario = getUsuarioLogado();
+
+        if (usuario.getRole() == UserRole.SUPER_ADMIN || usuario.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        if (usuario.getRole() == UserRole.ALUNO) {
+
+            if (aluno.getId().equals(usuario.getId())) {
+                return;
+            }
+        }
+        throw new RuntimeException("Você não possui permissão para realizar essa ação.");
     }
 }
