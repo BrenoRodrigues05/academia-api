@@ -118,6 +118,14 @@ public class TreinoService {
 
         Usuarios usuario = getUsuarioLogado();
 
+        if (usuario.getRole() != UserRole.PERSONAL
+                && usuario.getRole() != UserRole.ADMIN
+                && usuario.getRole() != UserRole.SUPER_ADMIN) {
+
+            throw new RuntimeException(
+                    "Somente personal ou administradores podem criar treinos.");
+        }
+
         Personal personal = personalRepository
                 .findByUsuarioId(usuario.getId())
                 .orElseThrow(() ->
@@ -227,13 +235,13 @@ public class TreinoService {
             return;
         }
 
-        boolean DonoDoTreino =
+        boolean donoDoTreino =
                 treino.getPersonal()
                         .getUsuario()
                         .getId()
                         .equals(usuario.getId());
 
-        if (!DonoDoTreino) {
+        if (!donoDoTreino) {
             throw new RuntimeException(
                     "Você não possui permissão para alterar este treino."
             );
