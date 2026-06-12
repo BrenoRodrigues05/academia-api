@@ -2,7 +2,7 @@
 
 API REST desenvolvida com Spring Boot para gerenciamento de academias, permitindo o controle de alunos, planos, matrículas, personais, treinos, exercícios e autenticação de usuários com JWT.
 
-O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados, PostgreSQL como banco relacional e Spring Security para autenticação e autorização.
+O projeto segue boas práticas de desenvolvimento utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados, PostgreSQL como banco relacional, Spring Security para autenticação e autorização e JWT para controle de acesso stateless.
 
 ---
 
@@ -62,7 +62,12 @@ src/main/java/com/academia/academia_api
 │       └── TipoPlano
 │
 ├── infra
-│   └── security
+│   ├── security
+│   │   ├── SecurityConfigurations
+│   │   ├── SecurityFilter
+│   │   └── TokenService
+│   │
+│   └── exceptions
 │
 ├── mappings
 │
@@ -110,25 +115,27 @@ PostgreSQL
 
 A API utiliza autenticação baseada em JWT.
 
-Fluxo:
+Fluxo de autenticação:
 
 ```text
 Login
-  ↓
-JWT Token
-  ↓
+   ↓
+Validação das credenciais
+   ↓
+Geração do JWT
+   ↓
 Bearer Token
-  ↓
-Rotas Protegidas
+   ↓
+Acesso às rotas protegidas
 ```
 
-Senha dos usuários:
+As senhas são criptografadas utilizando BCrypt.
 
 ```text
-BCrypt
+BCryptPasswordEncoder
 ```
 
-As senhas nunca são armazenadas em texto puro.
+Nenhuma senha é armazenada em texto puro.
 
 ---
 
@@ -140,52 +147,54 @@ O sistema utiliza Roles para controle de acesso.
 
 Possui acesso total ao sistema.
 
-Pode:
+Permissões:
 
-* Criar administradores
-* Criar personais
-* Gerenciar todos os recursos
-* Editar ou remover qualquer treino
+* Criar Administradores
+* Criar Personais
+* Gerenciar qualquer entidade
+* Editar qualquer treino
+* Excluir qualquer treino
+* Gerenciar usuários
 
 ---
 
 ## ADMIN
 
-Pode:
+Permissões:
 
 * Gerenciar alunos
 * Gerenciar planos
 * Gerenciar matrículas
 * Gerenciar personais
-* Visualizar e administrar treinos
+* Gerenciar treinos
 
 ---
 
 ## PERSONAL
 
-Pode:
+Permissões:
 
 * Criar treinos
-* Editar treinos criados por ele
-* Remover treinos criados por ele
+* Editar apenas os próprios treinos
+* Excluir apenas os próprios treinos
 * Gerenciar itens de treino
 
 ---
 
 ## ALUNO
 
-Pode:
+Permissões:
 
 * Criar sua própria conta
 * Realizar login
-* Visualizar seus próprios dados
-* Visualizar seus próprios treinos
+* Visualizar seus dados
+* Visualizar seus treinos
 
 ---
 
 # 📚 Entidades
 
-## 👤 Usuários
+## 👤 Usuarios
 
 Responsável pela autenticação do sistema.
 
@@ -314,76 +323,122 @@ Treino
 
 ## Usuários
 
-* Login único.
-* Senha criptografada com BCrypt.
-* Controle por Roles.
-* Usuários podem ser ativados ou desativados.
+* Login único
+* Senha criptografada com BCrypt
+* Controle por Roles
+* Usuários podem ser ativados ou desativados
 
 ---
 
 ## Matrículas
 
-* Um aluno só pode possuir uma matrícula ativa.
-* Não é permitido criar matrícula para aluno inexistente.
-* Não é permitido criar matrícula para plano inexistente.
-* Matrículas são desativadas ao invés de removidas fisicamente.
+* Um aluno só pode possuir uma matrícula ativa
+* Não é permitido criar matrícula para aluno inexistente
+* Não é permitido criar matrícula para plano inexistente
+* Matrículas são desativadas ao invés de removidas fisicamente
 
 ---
 
 ## Personais
 
-* E-mail único.
-* CREF único.
-* Relacionamento com usuário do sistema.
+* E-mail único
+* CREF único
+* Relacionamento obrigatório com usuário
 
 ---
 
 ## Treinos
 
-* Um aluno pode possuir apenas um treino ativo por vez.
-* Todo treino deve possuir um personal responsável.
-* O personal é obtido através do usuário autenticado.
-* Apenas o personal criador pode editar ou excluir seu treino.
-* Administradores podem gerenciar qualquer treino.
-* Super administradores possuem acesso total.
+* Um aluno pode possuir apenas um treino ativo
+* Todo treino deve possuir um personal responsável
+* O personal é obtido automaticamente pelo usuário autenticado
+* Apenas o personal criador pode editar ou excluir o treino
+* ADMIN pode gerenciar qualquer treino
+* SUPER_ADMIN possui acesso total
 
 ---
 
-# 📋 Endpoints Principais
+# 🔐 Endpoints de Autenticação
 
-## 🔐 Autenticação
-
-### Login
+## Login
 
 ```http
 POST /auth/login
 ```
 
-### Dados do usuário autenticado
+Retorna:
+
+```json
+{
+  "token": "jwt_token"
+}
+```
+
+---
+
+## Usuário autenticado
 
 ```http
 GET /auth/me
 ```
 
-### Registro de Aluno
+Retorna os dados do usuário logado.
+
+---
+
+## Registro de Aluno
 
 ```http
 POST /auth/register
 ```
 
-### Registro de Personal
+Acesso público.
+
+Cria:
+
+* Usuário (ROLE_ALUNO)
+* Aluno
+
+---
+
+## Registro de Personal
 
 ```http
 POST /auth/register/personal
 ```
 
-### Registro de Admin
+Acesso:
+
+```text
+SUPER_ADMIN
+```
+
+Cria:
+
+* Usuário (ROLE_PERSONAL)
+* Personal
+
+---
+
+## Registro de Administrador
 
 ```http
 POST /auth/register/admin
 ```
 
+Acesso:
+
+```text
+SUPER_ADMIN
+```
+
+Cria:
+
+* Usuário (ROLE_ADMIN)
+
 ---
+
+# 📋 Endpoints Principais
 
 ## 👤 Alunos
 
@@ -444,6 +499,18 @@ PATCH  /api/treinos/{id}/status
 DELETE /api/treinos/{id}
 ```
 
+### Regra de Segurança dos Treinos
+
+```text
+SUPER_ADMIN -> acesso total
+
+ADMIN -> acesso total
+
+PERSONAL -> apenas treinos criados por ele
+
+ALUNO -> apenas consulta
+```
+
 ---
 
 ## 💪 Exercícios
@@ -474,8 +541,6 @@ DELETE /api/itens-treino/{id}
 
 ## PostgreSQL
 
-Configuração:
-
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/academia_db
 spring.datasource.username=postgres
@@ -489,8 +554,6 @@ spring.jpa.hibernate.ddl-auto=validate
 # 🛫 Flyway
 
 Versionamento do banco de dados através de migrations.
-
-Exemplos:
 
 ```text
 V1__MigracaoInicial.sql
@@ -508,7 +571,7 @@ V9__add_usuario_id_to_personais.sql
 
 # ⚙️ Como Executar
 
-## Clonar projeto
+## Clonar o projeto
 
 ```bash
 git clone https://github.com/BrenoRodrigues05/academia-api.git
@@ -520,11 +583,29 @@ git clone https://github.com/BrenoRodrigues05/academia-api.git
 cd academia-api
 ```
 
+## Configurar o banco
+
+Crie um banco PostgreSQL:
+
+```sql
+CREATE DATABASE academia_db;
+```
+
+Configure as credenciais no:
+
+```properties
+application.properties
+```
+
+---
+
 ## Compilar
 
 ```bash
 mvn clean install
 ```
+
+---
 
 ## Executar
 
@@ -536,43 +617,78 @@ mvn spring-boot:run
 
 # 🔑 Primeiro Acesso
 
-O sistema cria automaticamente um usuário SUPER_ADMIN.
+O sistema possui um SUPER_ADMIN inicial.
 
 ```text
 Login: superadmin
 Senha: Academia@2026!
 ```
 
-Após realizar login:
+Gerar token:
 
 ```http
 POST /auth/login
 ```
 
-será retornado um JWT válido para utilização nas rotas protegidas.
+Resposta:
+
+```json
+{
+  "token": "jwt_token"
+}
+```
+
+Utilize:
+
+```http
+Authorization: Bearer SEU_TOKEN
+```
+
+nas rotas protegidas.
 
 ---
 
 # 🧪 Roadmap
 
+## Segurança
+
 * ✅ Spring Security
 * ✅ JWT Authentication
-* ✅ Controle de acesso por Roles
-* ✅ Cadastro de Alunos
-* ✅ Cadastro de Personais
-* ✅ Cadastro de Administradores
-* ✅ Usuário autenticado (/auth/me)
-* ✅ Autorização por proprietário do treino
-* ⬜ Refresh Token
-* ⬜ Swagger/OpenAPI
-* ⬜ Docker
-* ⬜ Testes Unitários
-* ⬜ Testes de Integração
+* ✅ Controle por Roles
+* ✅ Endpoint /auth/me
+* ✅ Registro de Alunos
+* ✅ Registro de Personais
+* ✅ Registro de Administradores
+* ✅ Permissão por proprietário do treino
+
+## Backend
+
 * ⬜ Global Exception Handler
 * ⬜ Paginação
-* ⬜ Logs Centralizados
-* ⬜ Histórico de Treinos
-* ⬜ Evolução de Carga/Peso
+* ⬜ Logs centralizados
+* ⬜ Auditoria de entidades
+* ⬜ Soft Delete
+
+## DevOps
+
+* ⬜ Swagger/OpenAPI
+* ⬜ Docker
+* ⬜ Docker Compose
+* ⬜ CI/CD
+
+## Qualidade
+
+* ⬜ Testes Unitários
+* ⬜ Testes de Integração
+* ⬜ Testcontainers
+
+## Funcionalidades Futuras
+
+* ⬜ Histórico de treinos
+* ⬜ Evolução de carga/peso
+* ⬜ Upload de imagens dos exercícios
+* ⬜ Refresh Token
+* ⬜ Recuperação de senha
 
 ---
 
@@ -583,10 +699,11 @@ será retornado um JWT válido para utilização nas rotas protegidas.
 Desenvolvedor Full Stack
 
 GitHub:
+
 https://github.com/BrenoRodrigues05
 
 ---
 
-## ⭐ Projeto em evolução
+# ⭐ Projeto em Evolução
 
-Projeto desenvolvido com foco em aprendizado contínuo, arquitetura limpa, boas práticas REST, segurança com JWT e padrões utilizados em aplicações Spring Boot utilizadas no mercado.
+Projeto desenvolvido com foco em aprendizado contínuo, arquitetura limpa, boas práticas REST, segurança com JWT, Spring Security, controle de acesso baseado em Roles e padrões amplamente utilizados em aplicações corporativas Spring Boot.
