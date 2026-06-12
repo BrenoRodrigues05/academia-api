@@ -1,17 +1,17 @@
 # 🏋️ Academia API
 
-Uma API REST desenvolvida com Spring Boot para gerenciamento de academias, permitindo o controle de alunos, planos, matrículas, personais, treinos e exercícios de forma segura, organizada e escalável.
+API REST desenvolvida com Spring Boot para gerenciamento de academias, permitindo o controle de alunos, planos, matrículas, personais, treinos, exercícios e autenticação de usuários com JWT.
 
-O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados e PostgreSQL como banco relacional.
+O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em camadas, DTOs, MapStruct, Flyway para versionamento do banco de dados, PostgreSQL como banco relacional e Spring Security para autenticação e autorização.
 
-## 🚀 Tecnologias Utilizadas
+---
 
-### Backend & Segurança
+# 🚀 Tecnologias Utilizadas
+
+## Backend
 
 * Java 21
 * Spring Boot 3
-* Spring Security (Autenticação e Autorização)
-* JWT (JSON Web Token)
 * Spring Data JPA
 * Hibernate
 * Spring Validation
@@ -21,9 +21,18 @@ O projeto segue boas práticas de desenvolvimento, utilizando arquitetura em cam
 * Lombok
 * Maven
 
+## Segurança
 
-## 📂 Estrutura do Projeto
+* Spring Security
+* JWT (JSON Web Token)
+* BCrypt Password Encoder
+* Role Based Access Control (RBAC)
 
+---
+
+# 📂 Estrutura do Projeto
+
+```text
 src/main/java/com/academia/academia_api
 
 ├── controllers
@@ -39,7 +48,7 @@ src/main/java/com/academia/academia_api
 ├── DTOs
 │
 ├── entity
-│   ├── Usuario
+│   ├── Usuarios
 │   ├── Aluno
 │   ├── Plano
 │   ├── Matricula
@@ -48,8 +57,12 @@ src/main/java/com/academia/academia_api
 │   ├── Exercicio
 │   ├── ItemTreino
 │   └── enums
-│       ├── Role (SUPER_ADMIN, ADMIN, PERSONAL, ALUNO)
-│       └── SexoEnum
+│       ├── UserRole
+│       ├── SexoEnum
+│       └── TipoPlano
+│
+├── infra
+│   └── security
 │
 ├── mappings
 │
@@ -58,204 +71,510 @@ src/main/java/com/academia/academia_api
 ├── services
 │
 └── AcademiaApiApplication
-
-
-## 🏛️ Arquitetura
-
-A aplicação segue uma arquitetura em camadas:
-
-Controller (Filtros JWT / Security)
-     ↓
-    DTO
-     ↓
-  Service
-     ↓
-Mapper (MapStruct)
-     ↓
-  Entity
-     ↓
- Repository
-     ↓
- PostgreSQL
-
-
-### Responsabilidades
-
-| Camada | Responsabilidade |
-| --- | --- |
-| Controller | Receber requisições HTTP e validar tokens/roles |
-| DTO | Transferência de dados |
-| Service | Regras de negócio |
-| Mapper | Conversão DTO ↔ Entity |
-| Repository | Acesso ao banco |
-| Entity | Representação das tabelas |
+```
 
 ---
 
-# 📚 Novas Entidades de Controle & Segurança
+# 🏛️ Arquitetura
 
-## 🔐 Usuário
+```text
+Controller
+    ↓
+DTO
+    ↓
+Service
+    ↓
+Mapper (MapStruct)
+    ↓
+Entity
+    ↓
+Repository
+    ↓
+PostgreSQL
+```
 
-Representa as credenciais de acesso ao sistema e define o nível de permissão (Role).
+## Responsabilidades
 
-| Campo | Tipo |
-| --- | --- |
-| id | Long |
-| login | String (Único) |
-| senha | String (Criptografada com BCrypt) |
-| role | Role (Enum) |
+| Camada     | Responsabilidade          |
+| ---------- | ------------------------- |
+| Controller | Receber requisições HTTP  |
+| DTO        | Transferência de dados    |
+| Service    | Regras de negócio         |
+| Mapper     | Conversão DTO ↔ Entity    |
+| Repository | Acesso ao banco           |
+| Entity     | Representação das tabelas |
 
+---
+
+# 🔐 Autenticação e Segurança
+
+A API utiliza autenticação baseada em JWT.
+
+Fluxo:
+
+```text
+Login
+  ↓
+JWT Token
+  ↓
+Bearer Token
+  ↓
+Rotas Protegidas
+```
+
+Senha dos usuários:
+
+```text
+BCrypt
+```
+
+As senhas nunca são armazenadas em texto puro.
+
+---
+
+# 👥 Controle de Acesso (RBAC)
+
+O sistema utiliza Roles para controle de acesso.
+
+## SUPER_ADMIN
+
+Possui acesso total ao sistema.
+
+Pode:
+
+* Criar administradores
+* Criar personais
+* Gerenciar todos os recursos
+* Editar ou remover qualquer treino
+
+---
+
+## ADMIN
+
+Pode:
+
+* Gerenciar alunos
+* Gerenciar planos
+* Gerenciar matrículas
+* Gerenciar personais
+* Visualizar e administrar treinos
+
+---
+
+## PERSONAL
+
+Pode:
+
+* Criar treinos
+* Editar treinos criados por ele
+* Remover treinos criados por ele
+* Gerenciar itens de treino
+
+---
+
+## ALUNO
+
+Pode:
+
+* Criar sua própria conta
+* Realizar login
+* Visualizar seus próprios dados
+* Visualizar seus próprios treinos
+
+---
+
+# 📚 Entidades
+
+## 👤 Usuários
+
+Responsável pela autenticação do sistema.
+
+| Campo     | Tipo          |
+| --------- | ------------- |
+| id        | Long          |
+| login     | String        |
+| senha     | String        |
+| role      | UserRole      |
+| ativo     | Boolean       |
+| createdAt | LocalDateTime |
+
+---
+
+## 👤 Aluno
+
+| Campo          | Tipo      |
+| -------------- | --------- |
+| id             | Long      |
+| nome           | String    |
+| email          | String    |
+| telefone       | String    |
+| dataNascimento | LocalDate |
+| sexo           | SexoEnum  |
+| usuario        | Usuarios  |
+
+---
+
+## 🏋️ Personal
+
+| Campo   | Tipo     |
+| ------- | -------- |
+| id      | Long     |
+| nome    | String   |
+| email   | String   |
+| cref    | String   |
+| usuario | Usuarios |
+
+---
+
+## 💳 Plano
+
+| Campo     | Tipo       |
+| --------- | ---------- |
+| id        | Long       |
+| nome      | String     |
+| descricao | String     |
+| valor     | BigDecimal |
+| tipo      | TipoPlano  |
+
+---
+
+## 📝 Matrícula
+
+| Campo | Tipo    |
+| ----- | ------- |
+| id    | Long    |
+| aluno | Aluno   |
+| plano | Plano   |
+| ativa | Boolean |
+
+---
+
+## 📋 Treino
+
+| Campo       | Tipo     |
+| ----------- | -------- |
+| id          | Long     |
+| nome        | String   |
+| observacoes | String   |
+| ativo       | Boolean  |
+| personal    | Personal |
+| aluno       | Aluno    |
+
+---
+
+## 💪 Exercício
+
+| Campo         | Tipo   |
+| ------------- | ------ |
+| id            | Long   |
+| nome          | String |
+| grupoMuscular | String |
+| descricao     | String |
+
+---
+
+## 🏋️ ItemTreino
+
+| Campo            | Tipo      |
+| ---------------- | --------- |
+| id               | Long      |
+| series           | Integer   |
+| repeticoes       | Integer   |
+| descansoSegundos | Integer   |
+| treino           | Treino    |
+| exercicio        | Exercicio |
+
+---
 
 # 🔄 Relacionamentos
 
-   ┌──────────────────┐
-   │     Usuário      │
-   └─┬──────────────┬─┘
-     │ 1:1          │ 1:1
-     ▼              ▼
-   Aluno         Personal
-     │              │
-     ├─► Matrícula  │ cria
-     │      │       ▼
-     │      ▼    Treino ◄─────┘
-     ▼    Plano     │
-   Aluno ◄──────────┘ pertence
-     │
-     │ 1:N
-     ▼
- ItemTreino ◄───► Exercicio (N:1)
+```text
+Usuarios
+   │
+   ├────────► Aluno
+   │
+   └────────► Personal
 
+Aluno
+   │
+   └─────► Matricula ◄───── Plano
 
-# 📌 Regras de Negócio & Segurança
+Personal
+   │
+   └─────► Treino ◄───── Aluno
 
-## 🔒 Controle de Acesso (Roles)
+Treino
+   │
+   └─────► ItemTreino ◄───── Exercicio
+```
 
-A API implementa controle de acesso baseado em perfis de usuários (`Role-Based Access Control - RBAC`):
+---
 
-* **SUPER_ADMIN**: Possui acesso total ao sistema, gerenciamento de administradores e configurações globais. O sistema inicializa automaticamente um usuário mestre na primeira execução para garantir o acesso inicial.
-* **ADMIN**: Gerencia o funcionamento da academia (Alunos, Personais, Planos e Matrículas).
-* **PERSONAL**: Possui permissão para criar, editar e gerenciar treinos e itens de treino para os alunos.
-* **ALUNO**: Perfil com acesso de leitura para visualizar seus próprios treinos, dados cadastrais e status da matrícula.
+# 📌 Regras de Negócio
 
-## 👤 Vínculos de Usuários
+## Usuários
 
-* Todo **Aluno** criado pode possuir uma conta de **Usuário** vinculada (1:1) com a role `ALUNO` para acessar o sistema.
-* Todo **Personal** criado pode possuir uma conta de **Usuário** vinculada (1:1) com a role `PERSONAL`.
+* Login único.
+* Senha criptografada com BCrypt.
+* Controle por Roles.
+* Usuários podem ser ativados ou desativados.
 
+---
 
 ## Matrículas
 
 * Um aluno só pode possuir uma matrícula ativa.
-* Não é permitido criar matrícula para aluno ou plano inexistente.
+* Não é permitido criar matrícula para aluno inexistente.
+* Não é permitido criar matrícula para plano inexistente.
 * Matrículas são desativadas ao invés de removidas fisicamente.
+
+---
 
 ## Personais
 
-* E-mail e CREF únicos.
-* Não permite exclusão de personal ativo.
+* E-mail único.
+* CREF único.
+* Relacionamento com usuário do sistema.
+
+---
 
 ## Treinos
 
 * Um aluno pode possuir apenas um treino ativo por vez.
-* Todo treino deve possuir um personal responsável e um aluno associado.
+* Todo treino deve possuir um personal responsável.
+* O personal é obtido através do usuário autenticado.
+* Apenas o personal criador pode editar ou excluir seu treino.
+* Administradores podem gerenciar qualquer treino.
+* Super administradores possuem acesso total.
 
+---
 
 # 📋 Endpoints Principais
 
 ## 🔐 Autenticação
 
-POST   /api/auth/login    -> Retorna o Bearer JWT Token válido
+### Login
+
+```http
+POST /auth/login
+```
+
+### Dados do usuário autenticado
+
+```http
+GET /auth/me
+```
+
+### Registro de Aluno
+
+```http
+POST /auth/register
+```
+
+### Registro de Personal
+
+```http
+POST /auth/register/personal
+```
+
+### Registro de Admin
+
+```http
+POST /auth/register/admin
+```
+
+---
 
 ## 👤 Alunos
 
+```http
 GET    /api/alunos
 GET    /api/alunos/{id}
 POST   /api/alunos
 PUT    /api/alunos/{id}
 DELETE /api/alunos/{id}
+```
 
-## 💳 Planos
-
-GET    /api/planos
-POST   /api/planos
-PUT    /api/planos/{id}
-DELETE /api/planos/{id}
-
-
-## 📝 Matrículas
-
-GET    /api/matriculas
-POST   /api/matriculas
-DELETE /api/matriculas/{id}
+---
 
 ## 🏋️ Personais
 
+```http
 GET    /api/personais
+GET    /api/personais/{id}
 POST   /api/personais
 PUT    /api/personais/{id}
 PATCH  /api/personais/{id}/status
 DELETE /api/personais/{id}
+```
+
+---
+
+## 💳 Planos
+
+```http
+GET    /api/planos
+GET    /api/planos/{id}
+POST   /api/planos
+PUT    /api/planos/{id}
+DELETE /api/planos/{id}
+```
+
+---
+
+## 📝 Matrículas
+
+```http
+GET    /api/matriculas
+GET    /api/matriculas/{id}
+POST   /api/matriculas
+DELETE /api/matriculas/{id}
+```
+
+---
 
 ## 📋 Treinos
 
+```http
 GET    /api/treinos
+GET    /api/treinos/{id}
 POST   /api/treinos
 PUT    /api/treinos/{id}
 PATCH  /api/treinos/{id}/status
+DELETE /api/treinos/{id}
+```
 
-# 🛢️ Banco de Dados & Versionamento (Flyway)
+---
 
-O projeto utiliza **Flyway** para estruturar e migrar o banco de dados evolutivamente.
+## 💪 Exercícios
 
-### Estrutura de Migrations
+```http
+GET    /api/exercicios
+GET    /api/exercicios/{id}
+POST   /api/exercicios
+PUT    /api/exercicios/{id}
+DELETE /api/exercicios/{id}
+```
 
-V1__create_alunos_planos_matriculas.sql
-V2__create_personais.sql
-V3__create_treinos.sql
-V4__create_exercicios.sql
-V5__create_itens_treino.sql
-V6__create_usuarios_and_security_setup.sql
+---
 
+## 🏋️ Itens de Treino
+
+```http
+GET    /api/itens-treino
+GET    /api/itens-treino/{id}
+POST   /api/itens-treino
+PUT    /api/itens-treino/{id}
+DELETE /api/itens-treino/{id}
+```
+
+---
+
+# 🛢️ Banco de Dados
+
+## PostgreSQL
+
+Configuração:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/academia_db
+spring.datasource.username=postgres
+spring.datasource.password=senha
+
+spring.jpa.hibernate.ddl-auto=validate
+```
+
+---
+
+# 🛫 Flyway
+
+Versionamento do banco de dados através de migrations.
+
+Exemplos:
+
+```text
+V1__MigracaoInicial.sql
+V2__create_table_personais.sql
+V3__create_table_exercicios.sql
+V4__create_table_itensTreino.sql
+V5__create_table_treinos.sql
+V6__create_usuarios.sql
+V7__add_ativo_to_usuarios.sql
+V8__add_usuario_id_to_alunos.sql
+V9__add_usuario_id_to_personais.sql
+```
+
+---
 
 # ⚙️ Como Executar
 
-## 1. Clonar projeto
+## Clonar projeto
 
-git clone [https://github.com/BrenoRodrigues05/academia-api.git](https://github.com/BrenoRodrigues05/academia-api.git)
+```bash
+git clone https://github.com/BrenoRodrigues05/academia-api.git
+```
+
+## Entrar na pasta
+
+```bash
 cd academia-api
+```
 
-## 2. Configurar Banco de Dados
+## Compilar
 
-Ajuste as credenciais do PostgreSQL em `src/main/resources/application.properties`.
-
-## 3. Compilar e Executar
-
+```bash
 mvn clean install
+```
+
+## Executar
+
+```bash
 mvn spring-boot:run
+```
 
-## 4. Primeiro Acesso (Credenciais do SuperAdmin)
+---
 
-Após rodar o projeto pela primeira vez, o banco de dados será populado automaticamente com o primeiro usuário de acesso total. Utilize o endpoint `/api/auth/login` com a requisição contendo as seguintes credenciais para gerar o seu Bearer Token JWT:
+# 🔑 Primeiro Acesso
 
-* **Login:** `superadmin`
-* **Senha:** `Academia@2026!`
+O sistema cria automaticamente um usuário SUPER_ADMIN.
 
-Com o token gerado, inclua-o no cabeçalho `Authorization` das requisições subsequentes para liberar o cadastro de novos usuários, `ADMIN`, `PERSONAL` ou `ALUNO`.
+```text
+Login: superadmin
+Senha: Academia@2026!
+```
 
-# 🧪 Roadmap de Desenvolvimento
+Após realizar login:
 
-* ✅ Spring Security configurado
-* ✅ Autenticação via JWT Token
-* ✅ Controle de acesso baseado em Roles (`SUPER_ADMIN`, `ADMIN`, `PERSONAL`, `ALUNO`)
-* ✅ Relacionamentos Usuário ↔ Aluno e Usuário ↔ Personal
-* ✅ Inicialização automática do SuperAdmin padrão
-* [ ] Histórico de treinos do aluno
-* [ ] Evolução de carga/peso
-* [ ] Upload de imagens dos exercícios
-* [ ] Documentação interativa com Swagger/OpenAPI
-* [ ] Dockerização do projeto (Dockerfile e docker-compose)
-* [ ] Testes Unitários e de Integração
-* [ ] Global Exception Handler customizado
+```http
+POST /auth/login
+```
+
+será retornado um JWT válido para utilização nas rotas protegidas.
+
+---
+
+# 🧪 Roadmap
+
+* ✅ Spring Security
+* ✅ JWT Authentication
+* ✅ Controle de acesso por Roles
+* ✅ Cadastro de Alunos
+* ✅ Cadastro de Personais
+* ✅ Cadastro de Administradores
+* ✅ Usuário autenticado (/auth/me)
+* ✅ Autorização por proprietário do treino
+* ⬜ Refresh Token
+* ⬜ Swagger/OpenAPI
+* ⬜ Docker
+* ⬜ Testes Unitários
+* ⬜ Testes de Integração
+* ⬜ Global Exception Handler
+* ⬜ Paginação
+* ⬜ Logs Centralizados
+* ⬜ Histórico de Treinos
+* ⬜ Evolução de Carga/Peso
+
+---
 
 # 👨‍💻 Autor
 
@@ -263,4 +582,11 @@ Com o token gerado, inclua-o no cabeçalho `Authorization` das requisições sub
 
 Desenvolvedor Full Stack
 
-GitHub: [BrenoRodrigues05](https://github.com/BrenoRodrigues05)
+GitHub:
+https://github.com/BrenoRodrigues05
+
+---
+
+## ⭐ Projeto em evolução
+
+Projeto desenvolvido com foco em aprendizado contínuo, arquitetura limpa, boas práticas REST, segurança com JWT e padrões utilizados em aplicações Spring Boot utilizadas no mercado.
