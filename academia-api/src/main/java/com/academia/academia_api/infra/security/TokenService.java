@@ -27,6 +27,23 @@ public class TokenService {
                 .sign(algorithm);
     }
 
+    public String validateToken(String token) {
+
+        try {
+
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+
+            return JWT.require(algorithm)
+                    .withIssuer("academia-api")
+                    .build()
+                    .verify(token)
+                    .getSubject();
+
+        } catch (Exception exception) {
+            return "";
+        }
+    }
+
     private Instant generateExpirationDate() {
 
         return LocalDateTime.now()
