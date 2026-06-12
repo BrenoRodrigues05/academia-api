@@ -6,11 +6,14 @@ import com.academia.academia_api.DTOs.TreinoUpdateDTO;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Personal;
 import com.academia.academia_api.entity.Treino;
+import com.academia.academia_api.entity.Usuarios;
+import com.academia.academia_api.entity.enums.UserRole;
 import com.academia.academia_api.mappings.TreinoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.PersonalRepository;
 import com.academia.academia_api.repository.TreinoRepository;
 import org.jspecify.annotations.NonNull;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -113,7 +116,10 @@ public class TreinoService {
 
     public TreinoResponseDTO addTreino(@NonNull TreinoCreateDTO dto) {
 
-        Personal personal = personalRepository.findById(dto.getPersonalId())
+        Usuarios usuario = getUsuarioLogado();
+
+        Personal personal = personalRepository
+                .findByUsuarioId(usuario.getId())
                 .orElseThrow(() ->
                         new RuntimeException("Personal não encontrado."));
 
@@ -149,6 +155,8 @@ public class TreinoService {
                 .orElseThrow(() ->
                         new RuntimeException("Treino não encontrado."));
 
+        validarPermissaoTreino(treino);
+
         treinoMapper.updateEntityFromDTO(dto, treino);
 
         Treino treinoAtualizado = treinoRepository.save(treino);
@@ -173,6 +181,7 @@ public class TreinoService {
                     "O treino já está com esse status.");
         }
 
+        validarPermissaoTreino(treino);
         treino.setAtivo(ativo);
 
         treinoRepository.save(treino);
@@ -190,9 +199,44 @@ public class TreinoService {
                 .orElseThrow(() ->
                         new RuntimeException("Treino não encontrado."));
 
+        validarPermissaoTreino(treino);
+
         treinoRepository.delete(treino);
 
         return treinoMapper.toResponseDTO(treino);
     }
 
+    private Usuarios getUsuarioLogado() {
+
+        return (Usuarios)
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal();
+    }
+
+    private void validarPermissaoTreino(Treino treino) {
+
+        Usuarios usuario = getUsuarioLogado();
+
+        if (usuario.getRole() == UserRole.SUPER_ADMIN) {
+            return;
+        }
+
+        if (usuario.getRole() == UserRole.ADMIN) {
+            return;
+        }
+
+        boolean DonoDoTreino =
+                treino.getPersonal()
+                        .getUsuario()
+                        .getId()
+                        .equals(usuario.getId());
+
+        if (!DonoDoTreino) {
+            throw new RuntimeException(
+                    "Você não possui permissão para alterar este treino."
+            );
+        }
+    }
 }

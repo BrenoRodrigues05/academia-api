@@ -14,4 +14,5 @@ public interface PersonalRepository extends JpaRepository<Personal, Long> {
     List<Personal> findByNome(String nome);
     List<Personal> findByAtivoFalse();
     List<Personal> findByAtivoTrue();
+    Optional<Personal> findByUsuarioId(Long usuarioId);
 }

@@ -17,9 +17,6 @@ public class TreinoCreateDTO {
     @Size(max = 100, message = "O nome deve ter no máximo 100 caracteres.")
     private String nome;
     private String observacoes;
-    @NotNull(message = "O personal responsável é obrigatório.")
-    private Long personalId;
-
     @NotNull(message = "É necessário selecionar um aluno.")
     private Long alunoId;
 }
