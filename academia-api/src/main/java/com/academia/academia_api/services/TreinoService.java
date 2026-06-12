@@ -49,9 +49,10 @@ public class TreinoService {
         if (id == null || id <= 0) {
             throw new RuntimeException("Id inválido.");
         }
-
         Treino treino = treinoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Treino não encontrado."));
+
+        validarAluno(treino.getAluno());
 
         return treinoMapper.toResponseDTO(treino);
     }
@@ -105,6 +106,11 @@ public class TreinoService {
         if (alunoId == null || alunoId <= 0) {
             throw new RuntimeException("Id do aluno inválido.");
         }
+
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new RuntimeException("Aluno não encontrado."));
+
+        validarAluno(aluno);
 
         Treino treino = treinoRepository
                 .findByAlunoIdAndAtivoTrue(alunoId)
@@ -246,5 +252,17 @@ public class TreinoService {
                     "Você não possui permissão para alterar este treino."
             );
         }
+    }
+
+    private void validarAluno(Aluno aluno) {
+        Usuarios usuario = getUsuarioLogado();
+        if (usuario.getRole() == UserRole.SUPER_ADMIN || usuario.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        if (usuario.getRole() == UserRole.ALUNO && aluno.getId().equals(usuario.getId())) {
+            return;
+        }
+
+        throw new RuntimeException("Você não possui permissão para visualizar estes treinos.");
     }
 }
