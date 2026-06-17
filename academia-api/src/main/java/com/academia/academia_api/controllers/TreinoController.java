@@ -1,5 +1,6 @@
 package com.academia.academia_api.controllers;
 
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.DTOs.TreinoCreateDTO;
 import com.academia.academia_api.DTOs.TreinoResponseDTO;
 import com.academia.academia_api.DTOs.TreinoUpdateDTO;
@@ -22,8 +23,14 @@ public class TreinoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TreinoResponseDTO>> findAll() {
-        return ResponseEntity.ok(treinoService.findAll());
+    public ResponseEntity<PageResponseDTO<TreinoResponseDTO>> findAll(
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+        return ResponseEntity.ok(treinoService.findAll(page, size));
     }
 
     @GetMapping("/{id}")

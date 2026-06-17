@@ -1,5 +1,6 @@
 package com.academia.academia_api.controllers;
 
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.DTOs.PersonalCreateDTO;
 import com.academia.academia_api.DTOs.PersonalResponseDTO;
 import com.academia.academia_api.DTOs.PersonalUpdateDTO;
@@ -22,8 +23,14 @@ public class PersonalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PersonalResponseDTO>> findAll() {
-        return ResponseEntity.ok(personalService.findAll());
+    public ResponseEntity<PageResponseDTO<PersonalResponseDTO>> findAll(
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+        return ResponseEntity.ok(personalService.findAll(page, size));
     }
 
     @GetMapping("/{id}")

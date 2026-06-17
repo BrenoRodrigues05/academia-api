@@ -1,6 +1,7 @@
 package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.MatriculaCreateDTO;
 import com.academia.academia_api.DTOs.MatriculaResponseDTO;
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.services.MatriculaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,14 @@ public class MatriculaController {
     }
 
    @GetMapping
-    public ResponseEntity<List<MatriculaResponseDTO>> matriculas() {
-        return ResponseEntity.ok(matriculaService.listarMatriculas());
+    public ResponseEntity<PageResponseDTO<MatriculaResponseDTO>> matriculas(
+           @RequestParam(defaultValue = "0")
+           int page,
+
+           @RequestParam(defaultValue = "10")
+           int size
+   ) {
+        return ResponseEntity.ok(matriculaService.listarMatriculas(page, size));
    }
 
     @GetMapping("/{id}")

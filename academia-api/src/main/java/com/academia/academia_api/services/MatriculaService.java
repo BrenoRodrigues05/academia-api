@@ -1,15 +1,17 @@
 package com.academia.academia_api.services;
 import com.academia.academia_api.DTOs.MatriculaCreateDTO;
 import com.academia.academia_api.DTOs.MatriculaResponseDTO;
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Matricula;
 import com.academia.academia_api.mappings.MatriculaMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PlanoRepository;
 import jakarta.persistence.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class MatriculaService {
@@ -27,11 +29,24 @@ public class MatriculaService {
         this.matriculaMapper = matriculaMapper;
     }
 
-    public List<MatriculaResponseDTO> listarMatriculas() {
+    public PageResponseDTO<MatriculaResponseDTO> listarMatriculas(int page, int size) {
 
-       return matriculaRepositoy.findAll().stream()
-               .map(matriculaMapper::toResponseDTO)
-               .toList();
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Matricula> matriculas =
+                matriculaRepositoy.findAll(pageable);
+
+        return new PageResponseDTO<>(
+                matriculas.getContent()
+                        .stream()
+                        .map(matriculaMapper::toResponseDTO)
+                        .toList(),
+
+                matriculas.getNumber(),
+                matriculas.getSize(),
+                matriculas.getTotalElements(),
+                matriculas.getTotalPages()
+        );
     }
 
    public MatriculaResponseDTO findById(Long idMatricula) {

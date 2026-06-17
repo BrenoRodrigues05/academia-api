@@ -1,5 +1,6 @@
 package com.academia.academia_api.services;
 
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.DTOs.TreinoCreateDTO;
 import com.academia.academia_api.DTOs.TreinoResponseDTO;
 import com.academia.academia_api.DTOs.TreinoUpdateDTO;
@@ -13,9 +14,11 @@ import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.PersonalRepository;
 import com.academia.academia_api.repository.TreinoRepository;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -38,10 +41,24 @@ public class TreinoService {
         this.alunoRepository = alunoRepository;
     }
 
-    public List<TreinoResponseDTO> findAll() {
-        return treinoRepository.findAll().stream()
-                .map(treinoMapper::toResponseDTO)
-                .toList();
+    public PageResponseDTO<TreinoResponseDTO> findAll(int  page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Treino> treinos =
+                treinoRepository.findAll(pageable);
+
+        return new PageResponseDTO<>(
+                treinos.getContent()
+                        .stream()
+                        .map(treinoMapper::toResponseDTO)
+                        .toList(),
+
+                treinos.getNumber(),
+                treinos.getSize(),
+                treinos.getTotalElements(),
+                treinos.getTotalPages()
+        );
     }
 
     public TreinoResponseDTO findById(Long id) {

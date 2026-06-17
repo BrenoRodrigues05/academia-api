@@ -1,11 +1,15 @@
 package com.academia.academia_api.services;
 
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.DTOs.PersonalCreateDTO;
 import com.academia.academia_api.DTOs.PersonalResponseDTO;
 import com.academia.academia_api.DTOs.PersonalUpdateDTO;
 import com.academia.academia_api.entity.Personal;
 import com.academia.academia_api.mappings.PersonalMapper;
 import com.academia.academia_api.repository.PersonalRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,10 +25,23 @@ public class PersonalService {
         this.personalMapper = personalMapper;
     }
 
-    public List<PersonalResponseDTO> findAll() {
-        return personalRepository.findAll().stream()
-                .map(personalMapper :: toResponseDTO)
-                .toList();
+    public PageResponseDTO<PersonalResponseDTO> findAll(int  page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Personal> personals = personalRepository.findAll(pageable);
+
+        return new PageResponseDTO<>(
+                personals.getContent()
+                        .stream()
+                        .map(personalMapper::toResponseDTO)
+                        .toList(),
+
+                personals.getNumber(),
+                personals.getSize(),
+                personals.getTotalElements(),
+                personals.getTotalPages()
+        );
     }
 
     public PersonalResponseDTO findById(Long id) {
