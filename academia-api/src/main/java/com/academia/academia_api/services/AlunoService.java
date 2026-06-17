@@ -3,12 +3,16 @@ package com.academia.academia_api.services;
 import com.academia.academia_api.DTOs.AlunoCreateDTO;
 import com.academia.academia_api.DTOs.AlunoResponseDTO;
 import com.academia.academia_api.DTOs.AlunoUpdateDTO;
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.SexoEnum;
 import com.academia.academia_api.entity.enums.UserRole;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +29,27 @@ public class AlunoService {
         this.alunoMapper = alunoMapper;
     }
 
-    public List<AlunoResponseDTO> listarAlunos() {
-        return alunoRepository.findAll().stream()
-                .map(alunoMapper::toResponseDTO)
-                .toList();
+    public PageResponseDTO<AlunoResponseDTO> findAll(
+            int page,
+            int size) {
+
+        Pageable pageable =
+                PageRequest.of(page, size);
+
+        Page<Aluno> alunos =
+                alunoRepository.findAll(pageable);
+
+        return new PageResponseDTO<>(
+                alunos.getContent()
+                        .stream()
+                        .map(alunoMapper::toResponseDTO)
+                        .toList(),
+
+                alunos.getNumber(),
+                alunos.getSize(),
+                alunos.getTotalElements(),
+                alunos.getTotalPages()
+        );
     }
 
     public AlunoResponseDTO findById(Long id) {

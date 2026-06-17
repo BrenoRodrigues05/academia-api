@@ -3,6 +3,7 @@ package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.AlunoCreateDTO;
 import com.academia.academia_api.DTOs.AlunoResponseDTO;
 import com.academia.academia_api.DTOs.AlunoUpdateDTO;
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.enums.SexoEnum;
 import com.academia.academia_api.services.AlunoService;
 import jakarta.validation.Valid;
@@ -23,8 +24,18 @@ public class AlunoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AlunoResponseDTO>> listarAlunos() {
-        return ResponseEntity.ok(alunoService.listarAlunos());
+    public ResponseEntity<PageResponseDTO<AlunoResponseDTO>> findAll(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+
+        return ResponseEntity.ok(
+                alunoService.findAll(page, size)
+        );
     }
 
     @GetMapping("/{id}")
