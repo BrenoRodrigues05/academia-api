@@ -1,6 +1,6 @@
 # 🏋️ Academia API
 
-API REST desenvolvida com Spring Boot para gerenciamento de academias, com controle de alunos, planos, matrículas, personais, treinos e exercícios, autenticação via JWT e RBAC.
+API REST desenvolvida com Spring Boot para gerenciamento de academias, com controle de alunos, planos, matrículas, personais, treinos e exercícios, listagens paginadas, autenticação via JWT e RBAC.
 
 ---
 
@@ -99,8 +99,8 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 
 ## 🧪 Roadmap
 
-* ✅ Autenticação JWT, RBAC, Global Exception Handler, Validações
-* ⬜ Paginação, Logs, Auditoria, Soft Delete
+* ✅ Autenticação JWT, RBAC, Global Exception Handler, Validações, Paginação e Ordenação
+* ⬜ Logs, Auditoria, Soft Delete
 * ⬜ Swagger, Docker, CI/CD
 * ⬜ Testes unitários e de integração
 
