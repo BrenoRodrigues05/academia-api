@@ -3,10 +3,14 @@ package com.academia.academia_api.services;
 import com.academia.academia_api.DTOs.ExercicioCreateDTO;
 import com.academia.academia_api.DTOs.ExercicioResponseDTO;
 import com.academia.academia_api.DTOs.ExercicioUpdateDTO;
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Exercicio;
 import com.academia.academia_api.mappings.ExercicioMapper;
 import com.academia.academia_api.repository.ExercicioRepository;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,13 +29,26 @@ public class ExercicioService {
         this.exercicioMapper = exercicioMapper;
     }
 
-    public List<ExercicioResponseDTO> findAll() {
+   public PageResponseDTO<ExercicioResponseDTO> findAll(int  page, int size) {
 
-        return exercicioRepository.findAll()
-                .stream()
-                .map(exercicioMapper::toResponseDTO)
-                .toList();
-    }
+       Pageable pageable =
+               PageRequest.of(page, size);
+
+       Page<Exercicio> exercicios =
+               exercicioRepository.findAll(pageable);
+
+       return  new PageResponseDTO<>(
+               exercicios.getContent()
+                       .stream()
+                       .map((exercicioMapper::toResponseDTO))
+                       .toList(),
+
+               exercicios.getNumber(),
+               exercicios.getSize(),
+               exercicios.getTotalElements(),
+               exercicios.getTotalPages()
+       );
+   }
 
     public ExercicioResponseDTO findById(Long id) {
 

@@ -3,6 +3,7 @@ package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.ExercicioCreateDTO;
 import com.academia.academia_api.DTOs.ExercicioResponseDTO;
 import com.academia.academia_api.DTOs.ExercicioUpdateDTO;
+import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.services.ExercicioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,14 @@ public class ExercicioController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ExercicioResponseDTO>> findAll() {
-        return ResponseEntity.ok(exercicioService.findAll());
+    public ResponseEntity<PageResponseDTO<ExercicioResponseDTO>> findAll(
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+        return ResponseEntity.ok(exercicioService.findAll(page, size));
     }
 
     @GetMapping("/{id}")
