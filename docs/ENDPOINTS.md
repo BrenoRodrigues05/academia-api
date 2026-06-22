@@ -77,6 +77,10 @@ Cria:
 ```http
 GET    /api/alunos
 GET    /api/alunos/{id}
+GET    /api/alunos/busca-nome
+GET    /api/alunos/busca-email
+GET    /api/alunos/busca-sexo
+GET    /api/alunos/busca-idade
 POST   /api/alunos
 PUT    /api/alunos/{id}
 DELETE /api/alunos/{id}
@@ -89,6 +93,11 @@ DELETE /api/alunos/{id}
 ```http
 GET    /api/personais
 GET    /api/personais/{id}
+GET    /api/personais/busca-email
+GET    /api/personais/busca-cref
+GET    /api/personais/busca-nome
+GET    /api/personais/ativos
+GET    /api/personais/inativos
 POST   /api/personais
 PUT    /api/personais/{id}
 PATCH  /api/personais/{id}/status
@@ -102,6 +111,10 @@ DELETE /api/personais/{id}
 ```http
 GET    /api/planos
 GET    /api/planos/{id}
+GET    /api/planos/busca-nome
+GET    /api/planos/busca-valor
+GET    /api/planos/busca-descricao
+GET    /api/planos/busca-tipo
 POST   /api/planos
 PUT    /api/planos/{id}
 DELETE /api/planos/{id}
@@ -115,7 +128,7 @@ DELETE /api/planos/{id}
 GET    /api/matriculas
 GET    /api/matriculas/{id}
 POST   /api/matriculas
-DELETE /api/matriculas/{id}
+PATCH  /api/matriculas/{id}/desativar
 ```
 
 ---
@@ -125,6 +138,11 @@ DELETE /api/matriculas/{id}
 ```http
 GET    /api/treinos
 GET    /api/treinos/{id}
+GET    /api/treinos/ativos
+GET    /api/treinos/inativos
+GET    /api/treinos/busca-nome
+GET    /api/treinos/personal/{personalId}
+GET    /api/treinos/aluno/{alunoId}
 POST   /api/treinos
 PUT    /api/treinos/{id}
 PATCH  /api/treinos/{id}/status
@@ -147,6 +165,8 @@ ALUNO       -> apenas consulta
 ```http
 GET    /api/exercicios
 GET    /api/exercicios/{id}
+GET    /api/exercicios/busca-nome
+GET    /api/exercicios/grupo-muscular
 POST   /api/exercicios
 PUT    /api/exercicios/{id}
 DELETE /api/exercicios/{id}
@@ -159,6 +179,8 @@ DELETE /api/exercicios/{id}
 ```http
 GET    /api/itens-treino
 GET    /api/itens-treino/{id}
+GET    /api/itens-treino/treino/{treinoId}
+GET    /api/itens-treino/exercicio/{exercicioId}
 POST   /api/itens-treino
 PUT    /api/itens-treino/{id}
 DELETE /api/itens-treino/{id}
