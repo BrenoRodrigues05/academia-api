@@ -7,6 +7,7 @@ import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.enums.SexoEnum;
 import com.academia.academia_api.services.AlunoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,8 +55,13 @@ public class AlunoController {
     }
 
     @GetMapping("/busca-sexo")
-    public ResponseEntity<List<AlunoResponseDTO>> findBySexo(@RequestParam SexoEnum sexo) {
-        return ResponseEntity.ok(alunoService.findBySexo(sexo));
+    public ResponseEntity<PageResponseDTO<AlunoResponseDTO>> findBySexo(
+            @RequestParam SexoEnum sexo,
+            Pageable pageable) {
+
+        return ResponseEntity.ok(
+                alunoService.findBySexo(sexo, pageable.getPageNumber(), pageable.getPageSize())
+        );
     }
 
     @GetMapping("/busca-idade")

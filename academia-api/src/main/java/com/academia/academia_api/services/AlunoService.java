@@ -128,18 +128,29 @@ public class AlunoService {
         return alunoMapper.toResponseDTO(buscaAluno);
     }
 
-    public List<AlunoResponseDTO> findBySexo(SexoEnum sexo) {
+    public PageResponseDTO<AlunoResponseDTO> findBySexo(SexoEnum sexo, int page,  int size) {
         if (sexo == null) {
             throw new RuntimeException("Sexo nulo ou vazio.");
         }
-        List<Aluno> buscaAlunos = alunoRepository.findBySexo(sexo);
-        if (buscaAlunos.isEmpty()) {
-            throw new RuntimeException("Nenhum aluno encontrado.");
-        }
+        Pageable pageable =
+                PageRequest.of(page, size);
 
-        return buscaAlunos.stream()
-                .map(alunoMapper::toResponseDTO)
-                .toList();
+        Page<Aluno> alunos =
+                alunoRepository.findBySexo(
+                        sexo,
+                        pageable
+                );
+
+        return new PageResponseDTO<>(
+                alunos.getContent()
+                        .stream()
+                        .map(alunoMapper::toResponseDTO)
+                        .toList(),
+                    alunos.getNumber(),
+                    alunos.getSize(),
+                    alunos.getTotalElements(),
+                    alunos.getTotalPages()
+        );
     }
 
     public List<AlunoResponseDTO> findByIdade(int idade) {
