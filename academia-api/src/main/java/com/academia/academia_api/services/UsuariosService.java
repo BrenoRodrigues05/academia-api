@@ -14,10 +14,16 @@ public class UsuariosService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var usuario = usuarioRepository.findByLogin(username);
-        if (usuario == null) {
-            throw new UsernameNotFoundException("Usuário não encontrado");
+        if (username == null || username.trim().isEmpty()) {
+            throw new UsernameNotFoundException("O login informado está vazio.");
         }
+
+        var usuario = usuarioRepository.findByLogin(username);
+
+        if (usuario == null) {
+            throw new UsernameNotFoundException("Usuário não encontrado com o login: " + username);
+        }
+
         return usuario;
     }
 }

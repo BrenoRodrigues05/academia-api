@@ -8,6 +8,9 @@ import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.SexoEnum;
 import com.academia.academia_api.entity.enums.UserRole;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
+import com.academia.academia_api.infra.exceptions.ForbiddenException;
+import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import org.springframework.data.domain.Page;
@@ -54,10 +57,10 @@ public class AlunoService {
 
     public AlunoResponseDTO findById(Long id) {
         if (id == null) {
-            return null;
+            throw new BadRequestException("O ID fornecido não pode ser nulo.");
         }
         Aluno aluno = alunoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Aluno não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado."));
 
         return alunoMapper.toResponseDTO(aluno);
     }
@@ -73,11 +76,11 @@ public class AlunoService {
 
     public AlunoResponseDTO updateAluno(Long id, AlunoUpdateDTO updateDTO) {
         if (id == null) {
-            throw new RuntimeException("ID inválido para atualização.");
+            throw new BadRequestException("ID inválido para atualização.");
         }
 
         Aluno alunoExistente = alunoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Aluno não encontrado para atualização."));
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado para atualização."));
 
         validarPermissaoAluno(alunoExistente);
 
@@ -90,25 +93,22 @@ public class AlunoService {
 
     public AlunoResponseDTO deleteAluno(Long id) {
         if (id == null) {
-            return null;
+            throw new BadRequestException("O ID fornecido para exclusão não pode ser nulo.");
         }
 
-        Aluno alunoDeletado = alunoRepository.findById(id).orElse(null);
-
-        if (alunoDeletado != null) {
-            alunoRepository.deleteById(id);
-        }
+        Aluno alunoDeletado = alunoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado para exclusão."));
 
         return alunoMapper.toResponseDTO(alunoDeletado);
     }
 
     public List<AlunoResponseDTO> findByNome(String nome) {
         if (nome == null || nome.isEmpty()) {
-            throw new RuntimeException("Nome inválido.");
+            throw new BadRequestException("Nome inválido para a busca.");
         }
         List<Aluno> buscaAlunos = alunoRepository.findByNome(nome);
         if (buscaAlunos.isEmpty()) {
-            throw new RuntimeException("Nenhum aluno encontrado com esse nome.");
+            throw new ResourceNotFoundException("Nenhum aluno encontrado com esse nome.");
         }
 
         return buscaAlunos.stream()
@@ -118,11 +118,11 @@ public class AlunoService {
 
     public AlunoResponseDTO findByEmail(String email) {
         if (email == null || email.isEmpty()) {
-            throw new RuntimeException("E-mail nulo ou vazio.");
+            throw new BadRequestException("E-mail nulo ou vazio.");
         }
         var buscaAluno = alunoRepository.findByEmail(email);
         if (buscaAluno == null) {
-            throw new RuntimeException("Aluno não encontrado.");
+            throw new ResourceNotFoundException("Aluno não encontrado.");
         }
 
         return alunoMapper.toResponseDTO(buscaAluno);
@@ -130,7 +130,7 @@ public class AlunoService {
 
     public PageResponseDTO<AlunoResponseDTO> findBySexo(SexoEnum sexo, int page,  int size) {
         if (sexo == null) {
-            throw new RuntimeException("Sexo nulo ou vazio.");
+            throw new BadRequestException("Sexo nulo ou vazio.");
         }
         Pageable pageable =
                 PageRequest.of(page, size);
@@ -155,13 +155,13 @@ public class AlunoService {
 
     public List<AlunoResponseDTO> findByIdade(int idade) {
         if (idade <= 0 || idade >= 100) {
-            throw new RuntimeException("Idade inválida.");
+            throw new BadRequestException("Idade inválida.");
         }
 
         List<Aluno> buscaAlunos = alunoRepository.findByIdadeCustom(idade);
 
         if (buscaAlunos.isEmpty()) {
-            throw new RuntimeException("Nenhum aluno com a idade selecionada.");
+            throw new ResourceNotFoundException("Nenhum aluno com a idade selecionada.");
         }
 
         return buscaAlunos.stream()
@@ -191,6 +191,6 @@ public class AlunoService {
                 return;
             }
         }
-        throw new RuntimeException("Você não possui permissão para realizar essa ação.");
+        throw new ForbiddenException("Você não possui permissão para realizar essa ação.");
     }
 }

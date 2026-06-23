@@ -7,6 +7,7 @@ import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Personal;
 import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.UserRole;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.PersonalRepository;
 import com.academia.academia_api.repository.UsuarioRepository;
@@ -37,7 +38,11 @@ public class AuthService {
     public void registerAluno(RegisterAlunoDTO dto) {
 
         if(usuarioRepository.existsByLogin(dto.login())) {
-            throw new RuntimeException("Login já utilizado.");
+            throw new BadRequestException("Login já utilizado.");
+        }
+
+        if (alunoRepository.findByEmail(dto.email()) != null) {
+            throw new BadRequestException("O e-mail informado já está cadastrado.");
         }
 
         Usuarios usuario = new Usuarios();
@@ -65,7 +70,7 @@ public class AuthService {
     public void registerPersonal(RegisterPersonalDTO dto) {
 
         if (usuarioRepository.existsByLogin(dto.login())) {
-            throw new RuntimeException("Login já utilizado.");
+            throw new BadRequestException("Login já utilizado.");
         }
 
         Usuarios usuario = new Usuarios();
@@ -92,7 +97,7 @@ public class AuthService {
     public void registerAdmin(RegisterAdminDTO dto) {
 
         if (usuarioRepository.existsByLogin(dto.login())) {
-            throw new RuntimeException("Login já utilizado.");
+            throw new BadRequestException("Login já utilizado.");
         }
 
         Usuarios usuario = new Usuarios();

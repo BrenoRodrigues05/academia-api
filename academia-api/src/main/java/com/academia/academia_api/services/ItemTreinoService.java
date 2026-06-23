@@ -6,6 +6,8 @@ import com.academia.academia_api.DTOs.ItemTreinoUpdateDTO;
 import com.academia.academia_api.entity.Exercicio;
 import com.academia.academia_api.entity.ItemTreino;
 import com.academia.academia_api.entity.Treino;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
+import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.ItemTreinoMapper;
 import com.academia.academia_api.repository.ExercicioRepository;
 import com.academia.academia_api.repository.ItemTreinoRepository;
@@ -42,21 +44,24 @@ public class ItemTreinoService {
     }
 
     public ItemTreinoResponseDTO findById(Long id) {
-
         if (id == null || id <= 0) {
-            throw new RuntimeException("Id inválido.");
+            throw new BadRequestException("O ID informado é inválido.");
         }
 
         ItemTreino item = itemTreinoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item de treino não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Item de treino não encontrado com o ID: " + id));
 
         return itemTreinoMapper.toResponseDTO(item);
     }
 
     public List<ItemTreinoResponseDTO> findByTreino(Long treinoId) {
-
         if (treinoId == null || treinoId <= 0) {
-            throw new RuntimeException("Treino inválido.");
+            throw new BadRequestException("O ID do treino informado é inválido.");
+        }
+
+        // Validação preventiva: Garante que o treino realmente existe antes de buscar os itens
+        if (!treinoRepository.existsById(treinoId)) {
+            throw new ResourceNotFoundException("Treino não encontrado com o ID: " + treinoId);
         }
 
         return itemTreinoRepository.findByTreinoId(treinoId)
@@ -66,9 +71,12 @@ public class ItemTreinoService {
     }
 
     public List<ItemTreinoResponseDTO> findByExercicio(Long exercicioId) {
-
         if (exercicioId == null || exercicioId <= 0) {
-            throw new RuntimeException("Exercício inválido.");
+            throw new BadRequestException("O ID do exercício informado é inválido.");
+        }
+
+        if (!exercicioRepository.existsById(exercicioId)) {
+            throw new ResourceNotFoundException("Exercício não encontrado com o ID: " + exercicioId);
         }
 
         return itemTreinoRepository.findByExercicioId(exercicioId)
@@ -78,55 +86,51 @@ public class ItemTreinoService {
     }
 
     public ItemTreinoResponseDTO addItemTreino(ItemTreinoCreateDTO dto) {
+        if (dto.getTreinoId() == null || dto.getExercicioId() == null) {
+            throw new BadRequestException("Os IDs de treino e exercício não podem ser nulos.");
+        }
 
         Treino treino = treinoRepository.findById(dto.getTreinoId())
-                .orElseThrow(() -> new RuntimeException("Treino não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Treino não encontrado com o ID: " + dto.getTreinoId()));
 
         Exercicio exercicio = exercicioRepository.findById(dto.getExercicioId())
-                .orElseThrow(() -> new RuntimeException("Exercício não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Exercício não encontrado com o ID: " + dto.getExercicioId()));
 
-        if(itemTreinoRepository.existsByTreinoIdAndExercicioId(dto.getTreinoId(), dto.getExercicioId())) {
-            throw new RuntimeException(
-                    "Esse exercício já foi adicionado ao treino.");
+        if (itemTreinoRepository.existsByTreinoIdAndExercicioId(dto.getTreinoId(), dto.getExercicioId())) {
+            throw new BadRequestException("Este exercício já foi adicionado a este treino.");
         }
 
         ItemTreino item = itemTreinoMapper.toEntity(dto);
-
         item.setTreino(treino);
         item.setExercicio(exercicio);
 
         ItemTreino salvo = itemTreinoRepository.save(item);
-
         return itemTreinoMapper.toResponseDTO(salvo);
     }
 
     public ItemTreinoResponseDTO updateItemTreino(Long id, ItemTreinoUpdateDTO dto) {
-
         if (id == null || id <= 0) {
-            throw new RuntimeException("Id inválido.");
+            throw new BadRequestException("O ID informado é inválido para atualização.");
         }
 
         ItemTreino item = itemTreinoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item de treino não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Item de treino não encontrado para atualização."));
 
         itemTreinoMapper.updateEntityFromDTO(dto, item);
-
         ItemTreino atualizado = itemTreinoRepository.save(item);
 
         return itemTreinoMapper.toResponseDTO(atualizado);
     }
 
     public ItemTreinoResponseDTO deleteItemTreino(Long id) {
-
         if (id == null || id <= 0) {
-            throw new RuntimeException("Id inválido.");
+            throw new BadRequestException("O ID informado é inválido para exclusão.");
         }
 
         ItemTreino item = itemTreinoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item de treino não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Item de treino não encontrado para exclusão."));
 
         itemTreinoRepository.delete(item);
-
         return itemTreinoMapper.toResponseDTO(item);
     }
 }

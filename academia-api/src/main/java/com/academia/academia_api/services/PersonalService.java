@@ -5,6 +5,8 @@ import com.academia.academia_api.DTOs.PersonalCreateDTO;
 import com.academia.academia_api.DTOs.PersonalResponseDTO;
 import com.academia.academia_api.DTOs.PersonalUpdateDTO;
 import com.academia.academia_api.entity.Personal;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
+import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.PersonalMapper;
 import com.academia.academia_api.repository.PersonalRepository;
 import org.springframework.data.domain.Page;
@@ -25,18 +27,12 @@ public class PersonalService {
         this.personalMapper = personalMapper;
     }
 
-    public PageResponseDTO<PersonalResponseDTO> findAll(int  page, int size) {
-
+    public PageResponseDTO<PersonalResponseDTO> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-
         Page<Personal> personals = personalRepository.findAll(pageable);
 
         return new PageResponseDTO<>(
-                personals.getContent()
-                        .stream()
-                        .map(personalMapper::toResponseDTO)
-                        .toList(),
-
+                personals.getContent().stream().map(personalMapper::toResponseDTO).toList(),
                 personals.getNumber(),
                 personals.getSize(),
                 personals.getTotalElements(),
@@ -45,113 +41,111 @@ public class PersonalService {
     }
 
     public PersonalResponseDTO findById(Long id) {
-        if(id == null || id <= 0){
-           throw new  RuntimeException("Id invalido ou nulo.");
+        if (id == null || id <= 0) {
+            throw new BadRequestException("O ID informado é inválido ou nulo.");
         }
         Personal personal = personalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Personal não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado com o ID: " + id));
 
         return personalMapper.toResponseDTO(personal);
     }
 
     public PersonalResponseDTO findByCref(String cref) {
-        if(cref == null || cref.isBlank()){
-            throw new   RuntimeException("Cref invalido ou vazio.");
+        if (cref == null || cref.trim().isEmpty()) {
+            throw new BadRequestException("O CREF informado é inválido ou vazio.");
         }
 
-        var buscaPersonal = personalRepository.findByCref(cref);
+        Personal personal = personalRepository.findByCref(cref)
+                .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado com o CREF: " + cref));
 
-        if(buscaPersonal.isEmpty()){
-           throw new RuntimeException("Personal não encontrado.");
-        }
-        return personalMapper.toResponseDTO(buscaPersonal.get());
+        return personalMapper.toResponseDTO(personal);
     }
 
     public PersonalResponseDTO findByEmail(String email) {
-        if(email == null || email.isBlank()){
-            throw  new   RuntimeException("Email invalido ou vazio.");
+        if (email == null || email.trim().isEmpty()) {
+            throw new BadRequestException("O e-mail informado é inválido ou vazio.");
         }
-        var buscaPersonal = personalRepository.findByEmail(email);
-        if(buscaPersonal.isEmpty()){
-            throw new RuntimeException("Personal não encontrado.");
-        }
-        return personalMapper.toResponseDTO(buscaPersonal.get());
+
+        Personal personal = personalRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado com o e-mail: " + email));
+
+        return personalMapper.toResponseDTO(personal);
     }
 
     public List<PersonalResponseDTO> findByNome(String nome) {
-        if(nome == null || nome.isBlank()){
-            throw   new   RuntimeException("Nome invalido ou vazio.");
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new BadRequestException("O nome informado é inválido ou vazio.");
         }
-        var buscaPersonal = personalRepository.findByNome(nome);
-        if(buscaPersonal.isEmpty()){
-            throw new RuntimeException("Personal não encontrado.");
+
+        List<Personal> buscaPersonal = personalRepository.findByNome(nome);
+        if (buscaPersonal.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum personal encontrado com o nome: " + nome);
         }
+
         return buscaPersonal.stream()
                 .map(personalMapper::toResponseDTO)
                 .toList();
     }
 
     public List<PersonalResponseDTO> findByAtivoFalse() {
-        var buscaPersonal = personalRepository.findByAtivoFalse();
-        if(buscaPersonal.isEmpty()){
-            throw new RuntimeException("Nenhum personal inativo encontrado.");
+        List<Personal> buscaPersonal = personalRepository.findByAtivoFalse();
+        if (buscaPersonal.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum personal inativo encontrado.");
         }
         return buscaPersonal.stream()
                 .map(personalMapper::toResponseDTO)
                 .toList();
     }
 
-    public  List<PersonalResponseDTO> findByAtivoTrue() {
-        var buscaPersonal = personalRepository.findByAtivoTrue();
-        if(buscaPersonal.isEmpty()){
-            throw new RuntimeException("Nenhum personal ativo encontrado.");
+    public List<PersonalResponseDTO> findByAtivoTrue() {
+        List<Personal> buscaPersonal = personalRepository.findByAtivoTrue();
+        if (buscaPersonal.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum personal ativo encontrado.");
         }
         return buscaPersonal.stream()
                 .map(personalMapper::toResponseDTO)
                 .toList();
     }
 
-    public PersonalResponseDTO addPersonal(PersonalCreateDTO  personalCreateDTO) {
-
+    public PersonalResponseDTO addPersonal(PersonalCreateDTO personalCreateDTO) {
         if (personalRepository.findByEmail(personalCreateDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Já existe um personal com esse e-mail.");
+            throw new BadRequestException("Já existe um personal cadastrado com este e-mail.");
         }
 
         if (personalRepository.findByCref(personalCreateDTO.getCref()).isPresent()) {
-            throw new RuntimeException("Já existe um personal com esse CREF.");
+            throw new BadRequestException("Já existe um personal cadastrado com este CREF.");
         }
 
         Personal personalEntity = personalMapper.toEntity(personalCreateDTO);
+        Personal novoPersonal = personalRepository.save(personalEntity);
 
-        Personal novoPersonal  = personalRepository.save(personalEntity);
-
-        return  personalMapper.toResponseDTO(novoPersonal);
+        return personalMapper.toResponseDTO(novoPersonal);
     }
 
     public PersonalResponseDTO updatePersonal(Long id, PersonalUpdateDTO personalUpdateDTO) {
-        if(id == null || id <= 0){
-            throw new RuntimeException("Id inválido ou nulo.");
+        if (id == null || id <= 0) {
+            throw new BadRequestException("ID inválido ou nulo para atualização.");
         }
 
         Personal personalExistente = personalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Personal não encontrado para atualização."));
+                .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado para atualização."));
 
         personalMapper.updateEntityFromDTO(personalUpdateDTO, personalExistente);
-        Personal personalAtualizado =  personalRepository.save(personalExistente);
+        Personal personalAtualizado = personalRepository.save(personalExistente);
 
-        return   personalMapper.toResponseDTO(personalAtualizado);
+        return personalMapper.toResponseDTO(personalAtualizado);
     }
 
-    public  PersonalResponseDTO atualizarAtivoPersonal(Long id, boolean ativo) {
-        if(id == null || id <= 0){
-            throw new RuntimeException("Id invalido ou nulo.");
+    public PersonalResponseDTO atualizarAtivoPersonal(Long id, boolean ativo) {
+        if (id == null || id <= 0) {
+            throw new BadRequestException("ID inválido ou nulo.");
         }
 
-        var buscaPersonal = personalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Personal não encontrado para alteração."));
+        Personal buscaPersonal = personalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado para alteração de status."));
 
-        if (buscaPersonal.getAtivo().equals(ativo)) {
-            throw new RuntimeException("O personal selecionado já está com esse status.");
+        if (buscaPersonal.getAtivo() != null && buscaPersonal.getAtivo().equals(ativo)) {
+            throw new BadRequestException("O personal selecionado já possui o status informado.");
         }
 
         buscaPersonal.setAtivo(ativo);
@@ -159,20 +153,19 @@ public class PersonalService {
         return personalMapper.toResponseDTO(buscaPersonal);
     }
 
-    public  PersonalResponseDTO deletePersonal(Long id) {
-        if(id == null || id <= 0){
-            throw new RuntimeException("Id invalido ou nulo.");
+    public PersonalResponseDTO deletePersonal(Long id) {
+        if (id == null || id <= 0) {
+            throw new BadRequestException("ID inválido ou nulo para exclusão.");
         }
 
         Personal personalDeletado = personalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Personal não encontrado para deletar."));
+                .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado para exclusão."));
 
-        if(personalDeletado.getAtivo() == true){
-            throw new RuntimeException("O personal está ativo. Para deletar, primeiro desative.");
+        if (Boolean.TRUE.equals(personalDeletado.getAtivo())) {
+            throw new BadRequestException("O personal está ativo. Para deletar, primeiro altere o status para inativo.");
         }
+
         personalRepository.delete(personalDeletado);
         return personalMapper.toResponseDTO(personalDeletado);
     }
-
-
 }

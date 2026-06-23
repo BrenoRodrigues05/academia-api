@@ -1,13 +1,17 @@
 package com.academia.academia_api.services;
+
 import com.academia.academia_api.DTOs.MatriculaCreateDTO;
 import com.academia.academia_api.DTOs.MatriculaResponseDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
+import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Matricula;
+import com.academia.academia_api.entity.Plano;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
+import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.MatriculaMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PlanoRepository;
-import jakarta.persistence.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +22,7 @@ public class MatriculaService {
 
     private final MatriculaRepositoy matriculaRepositoy;
     private final AlunoRepository alunoRepository;
-    private final PlanoRepository planoRepository ;
+    private final PlanoRepository planoRepository;
     private final MatriculaMapper matriculaMapper;
 
     public MatriculaService(MatriculaRepositoy matriculaRepositoy, AlunoRepository alunoRepository,
@@ -30,18 +34,11 @@ public class MatriculaService {
     }
 
     public PageResponseDTO<MatriculaResponseDTO> listarMatriculas(int page, int size) {
-
         Pageable pageable = PageRequest.of(page, size);
-
-        Page<Matricula> matriculas =
-                matriculaRepositoy.findAll(pageable);
+        Page<Matricula> matriculas = matriculaRepositoy.findAll(pageable);
 
         return new PageResponseDTO<>(
-                matriculas.getContent()
-                        .stream()
-                        .map(matriculaMapper::toResponseDTO)
-                        .toList(),
-
+                matriculas.getContent().stream().map(matriculaMapper::toResponseDTO).toList(),
                 matriculas.getNumber(),
                 matriculas.getSize(),
                 matriculas.getTotalElements(),
@@ -49,63 +46,55 @@ public class MatriculaService {
         );
     }
 
-   public MatriculaResponseDTO findById(Long idMatricula) {
-       if(idMatricula == null || idMatricula <= 0){
-           throw new RuntimeException("Id invalido ou inexistente.");
-       }
-
-      Matricula matricula =  matriculaRepositoy.findById(idMatricula)
-              .orElseThrow(() -> new RuntimeException("Matricula não encontrada."));
-       return matriculaMapper.toResponseDTO(matricula);
-   }
-
-   public MatriculaResponseDTO criarMatricula(MatriculaCreateDTO dto, Long idAluno, Long idPlano) {
-       if (idAluno == null || idAluno <= 0 || idPlano == null || idPlano <= 0) {
-           throw new RuntimeException("Id invalido ou inexistente.");
-       }
-
-       var buscaAluno = alunoRepository.findById(idAluno);
-       if(buscaAluno.isEmpty()) {
-           throw new RuntimeException("Aluno não existente.");
-       }
-
-       var matriculaAtivaExistente = matriculaRepositoy.findByAlunoIdAndAtiva(idAluno, true);
-       if (matriculaAtivaExistente != null) {
-           throw new RuntimeException("Aluno já possui matricula ativa.");
-       }
-       var buscaPlano = planoRepository.findById(idPlano);
-
-       if(buscaPlano.isEmpty()){
-           throw new RuntimeException("Plano selecionado é inválido.");
-       }
-
-       Matricula novaMatricula = matriculaMapper.toEntity(dto);
-
-       novaMatricula.setAluno(buscaAluno.get());
-       novaMatricula.setPlano(buscaPlano.get());
-       novaMatricula.setAtiva(true);
-
-       Matricula salva = matriculaRepositoy.save(novaMatricula);
-
-       return matriculaMapper.toResponseDTO(salva);
-   }
-
-   public MatriculaResponseDTO desativarMatricula(Long idMatricula) {
-        if(idMatricula == null || idMatricula <= 0){
-            throw new RuntimeException("Id invalido ou inexistente.");
-        }
-        var buscaMatricula =  matriculaRepositoy.findByMatriculaAndAtiva(idMatricula, true);
-
-        if(buscaMatricula == null){
-            throw new RuntimeException("Matricula inexistente ou já inativa.");
+    public MatriculaResponseDTO findById(Long idMatricula) {
+        if (idMatricula == null || idMatricula <= 0) {
+            throw new BadRequestException("O ID da matrícula informado é inválido.");
         }
 
-       buscaMatricula.setAtiva(false);
+        Matricula matricula = matriculaRepositoy.findById(idMatricula)
+                .orElseThrow(() -> new ResourceNotFoundException("Matrícula não encontrada com o ID: " + idMatricula));
 
-       Matricula matriculaAtualizada =
-               matriculaRepositoy.save(buscaMatricula);
+        return matriculaMapper.toResponseDTO(matricula);
+    }
 
-       return matriculaMapper.toResponseDTO(matriculaAtualizada);
-   }
+    public MatriculaResponseDTO criarMatricula(MatriculaCreateDTO dto, Long idAluno, Long idPlano) {
+        if (idAluno == null || idAluno <= 0 || idPlano == null || idPlano <= 0) {
+            throw new BadRequestException("Os IDs de aluno e plano devem ser válidos e maiores que zero.");
+        }
 
+        Aluno aluno = alunoRepository.findById(idAluno)
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com o ID: " + idAluno));
+
+        var matriculaAtivaExistente = matriculaRepositoy.findByAlunoIdAndAtiva(idAluno, true);
+        if (matriculaAtivaExistente != null) {
+            throw new BadRequestException("O aluno informado já possui uma matrícula ativa.");
+        }
+
+        Plano plano = planoRepository.findById(idPlano)
+                .orElseThrow(() -> new ResourceNotFoundException("Plano não encontrado com o ID: " + idPlano));
+
+        Matricula novaMatricula = matriculaMapper.toEntity(dto);
+        novaMatricula.setAluno(aluno);
+        novaMatricula.setPlano(plano);
+        novaMatricula.setAtiva(true);
+
+        Matricula salva = matriculaRepositoy.save(novaMatricula);
+        return matriculaMapper.toResponseDTO(salva);
+    }
+
+    public MatriculaResponseDTO desativarMatricula(Long idMatricula) {
+        if (idMatricula == null || idMatricula <= 0) {
+            throw new BadRequestException("O ID da matrícula informado é inválido.");
+        }
+
+        var buscaMatricula = matriculaRepositoy.findByMatriculaAndAtiva(idMatricula, true);
+        if (buscaMatricula == null) {
+            throw new ResourceNotFoundException("Matrícula não encontrada ou já se encontra inativa.");
+        }
+
+        buscaMatricula.setAtiva(false);
+        Matricula matriculaAtualizada = matriculaRepositoy.save(buscaMatricula);
+
+        return matriculaMapper.toResponseDTO(matriculaAtualizada);
+    }
 }
