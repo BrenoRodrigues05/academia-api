@@ -16,14 +16,14 @@
 * ✅ Global Exception Handler
 * ✅ Exceptions Customizadas
 * ✅ Tratamento de Validações
-* ⬜ Paginação
+* ✅ Paginação
 * ⬜ Logs centralizados
 * ⬜ Auditoria de entidades
 * ⬜ Soft Delete
 
 ## DevOps
 
-* ⬜ Swagger/OpenAPI
+* ✅ Swagger/OpenAPI
 * ⬜ Docker
 * ⬜ Docker Compose
 * ⬜ CI/CD
