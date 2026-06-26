@@ -82,6 +82,13 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/api/matriculas").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
                         .requestMatchers(HttpMethod.PATCH, "/api/matriculas/**").hasRole("ADMIN")
 
+                        // Swagger
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

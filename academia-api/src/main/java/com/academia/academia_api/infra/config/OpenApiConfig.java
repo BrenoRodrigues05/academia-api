@@ -1,0 +1,84 @@
+package com.academia.academia_api.infra.config;
+
+import io.swagger.v3.oas.models.ExternalDocumentation;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+
+        return new OpenAPI()
+
+                .info(new Info()
+
+                        .title("Academia API")
+
+                        .description("""
+                                API REST para gerenciamento de academias.
+
+                                Recursos disponíveis:
+
+                                • Alunos
+                                • Personais
+                                • Planos
+                                • Matrículas
+                                • Treinos
+                                • Exercícios
+                                • Itens de Treino
+                                • Autenticação JWT
+                                """)
+
+                        .version("1.0.0")
+
+                        .contact(new Contact()
+
+                                .name("Breno Rodrigues")
+
+                                .email("brenobr10@hotmail.com")
+
+                                .url("https://www.brenorodriguesdev.com.br/"))
+
+                        .license(new License()
+
+                                .name("MIT")
+                                .url("https://opensource.org/licenses/MIT")))
+
+                .externalDocs(
+                        new ExternalDocumentation()
+
+                                .description("Repositório do Projeto")
+
+                                .url("https://github.com/BrenoRodrigues05/academia-api"))
+
+                        .components(
+                new Components()
+
+                        .addSecuritySchemes(
+                                "bearerAuth",
+
+                                new SecurityScheme()
+
+                                        .type(SecurityScheme.Type.HTTP)
+
+                                        .scheme("bearer")
+
+                                        .bearerFormat("JWT")
+                        )
+        )
+
+                .addSecurityItem(
+                        new SecurityRequirement()
+                                .addList("bearerAuth")
+                );
+    }
+}
