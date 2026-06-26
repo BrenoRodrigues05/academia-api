@@ -103,4 +103,4 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 
 ## 👨‍💻 Autor
 
-**Breno Rodrigues** — Desenvolvedor Full Stack · [Linkedin]((https://www.linkedin.com/in/brenorodrigues05/)
+**Breno Rodrigues** — Desenvolvedor Full Stack · [Linkedin](https://www.linkedin.com/in/brenorodrigues05/)
