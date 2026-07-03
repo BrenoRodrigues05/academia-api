@@ -27,7 +27,8 @@ API REST desenvolvida com Spring Boot para gerenciamento de academias, com contr
 Controller → DTO → Service → Mapper (MapStruct) → Entity → Repository → PostgreSQL
 ```
 
-Tratamento de erros centralizado via Global Exception Handler, com exceptions customizadas (`ResourceNotFoundException`, `BusinessException`, `UnauthorizedException`) e validações padronizadas de DTOs.
+* **Tratamento de Erros:** Centralizado via Global Exception Handler, com exceptions customizadas (`ResourceNotFoundException`, `BusinessException`, `UnauthorizedException`) e validações padronizadas de DTOs.
+* **Auditoria de Dados:** Implementada de forma global através de uma `@MappedSuperclass` (`BaseEntity`) integrada ao **Spring Data JPA Auditing**, garantindo rastreabilidade automatizada de criação e modificação (`created_at`, `updated_at`, `created_by`, `updated_by`) em todas as entidades principais.
 
 ## 👥 Controle de Acesso (RBAC)
 
@@ -95,7 +96,8 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 
 - ✅ Autenticação JWT, RBAC, Global Exception Handler, Validações, Paginação e Ordenação
 - ✅ Swagger / OpenAPI 3
-- ⬜ Logs, Auditoria, Soft Delete
+- ✅ Auditoria de Dados (Spring Data JPA Auditing com BaseEntity)
+- ⬜ Logs, Soft Delete
 - ⬜ Docker, CI/CD
 - ⬜ Testes unitários e de integração
 
