@@ -1,0 +1,8 @@
+# IDEs
+.idea/
+*.iml
+
+# Build e dependencias
+target/
+.gradle/
+build/
