@@ -26,4 +26,5 @@ V6__create_usuarios.sql
 V7__add_ativo_to_usuarios.sql
 V8__add_usuario_id_to_alunos.sql
 V9__add_usuario_id_to_personais.sql
+V10_add_auditoria.sql
 ```
