@@ -22,7 +22,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @Table(name = "usuarios")
-public class Usuarios implements UserDetails {
+public class Usuarios extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,13 +36,6 @@ public class Usuarios implements UserDetails {
     private UserRole role;
     @Column(nullable = false)
     private Boolean ativo = true;
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

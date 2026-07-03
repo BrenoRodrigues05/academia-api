@@ -12,7 +12,7 @@ import lombok.Setter;
 @Table(name = "itens_treino")
 @Getter
 @Setter
-public class ItemTreino {
+public class ItemTreino extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
