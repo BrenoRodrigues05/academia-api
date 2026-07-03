@@ -17,8 +17,8 @@
 * ✅ Exceptions Customizadas
 * ✅ Tratamento de Validações
 * ✅ Paginação
+* ✅ Auditoria de entidades
 * ⬜ Logs centralizados
-* ⬜ Auditoria de entidades
 * ⬜ Soft Delete
 
 ## DevOps
