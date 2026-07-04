@@ -19,6 +19,8 @@ API REST desenvolvida com Spring Boot para gerenciamento de academias, com contr
 
 **Segurança:** Spring Security, JWT, BCrypt, RBAC
 
+**DevOps & Containers:** Docker, Docker Compose
+
 **Documentação:** SpringDoc OpenAPI 3, Swagger UI
 
 ## 🏛️ Arquitetura
@@ -43,18 +45,41 @@ Controller → DTO → Service → Mapper (MapStruct) → Entity → Repository 
 
 ## ⚙️ Como Executar
 
+### Pré-requisitos
+- [Git](https://git-scm.com/)
+- [Docker e Docker Compose](https://www.docker.com/) (para a forma padrão de execução)
+- Java 21 e Maven (apenas se for rodar localmente sem Docker)
+
+### Clonando o projeto
+
 ```bash
 git clone https://github.com/BrenoRodrigues05/academia-api.git
 cd academia-api
 ```
 
-Crie o banco PostgreSQL:
+### 🐳 Executando com Docker (Forma Padrão — Recomendada)
+
+Esta é a forma mais rápida de subir o ambiente completo (API + banco PostgreSQL), sem precisar instalar ou configurar o Postgres manualmente. Na raiz do projeto, execute:
+
+```bash
+docker compose up -d --build
+```
+
+O Docker Compose já cria o container do PostgreSQL e sobe a API conectada a ele automaticamente. A API estará disponível em `http://localhost:8080`.
+
+### 🖥️ Executando localmente (sem Docker)
+
+Se preferir rodar a aplicação diretamente na sua máquina:
+
+1. Tenha um PostgreSQL instalado e rodando localmente.
+2. Crie o banco de dados:
 
 ```sql
 CREATE DATABASE academia_db;
 ```
 
-Configure as credenciais em `application.properties`, depois:
+3. Configure as credenciais de acesso (usuário, senha, URL) em `application.properties`.
+4. Compile e execute a aplicação:
 
 ```bash
 mvn clean install
@@ -107,9 +132,10 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 - ✅ Autenticação JWT, RBAC, Global Exception Handler, Validações, Paginação e Ordenação
 - ✅ Swagger / OpenAPI 3
 - ✅ Auditoria de Dados (Spring Data JPA Auditing com BaseEntity)
-- ✅ Testes unitários 
+- ✅ Testes unitários
+- ✅ Dockerization (API & PostgreSQL via Docker Compose)
 - ⬜ Logs, Soft Delete
-- ⬜ Docker, CI/CD
+- ⬜ CI/CD Pipeline
 
 📖 Roadmap completo em [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
