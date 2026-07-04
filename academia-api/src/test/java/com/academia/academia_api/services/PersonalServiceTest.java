@@ -154,7 +154,7 @@ class PersonalServiceTest {
             List<PersonalResponseDTO> resultado = personalService.findByAtivoTrue();
 
             assertFalse(resultado.isEmpty());
-            assertTrue(resultado.get(0).getAtivo());
+            assertTrue(resultado.getFirst().getAtivo());
         }
 
         @Test
@@ -169,7 +169,7 @@ class PersonalServiceTest {
             List<PersonalResponseDTO> resultado = personalService.findByAtivoFalse();
 
             assertFalse(resultado.isEmpty());
-            assertFalse(resultado.get(0).getAtivo());
+            assertFalse(resultado.getFirst().getAtivo());
         }
     }
 
