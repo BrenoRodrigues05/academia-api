@@ -42,4 +42,8 @@ jobs:
 
       - name: Build and Run Tests
         working-directory: ./academia-api
+        env:
+            SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/academia_db
+            SPRING_DATASOURCE_USERNAME: postgres
+            SPRING_DATASOURCE_PASSWORD: postgres
         run: mvn clean install
