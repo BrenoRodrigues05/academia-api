@@ -66,6 +66,33 @@ Esta é a forma mais rápida de subir o ambiente completo (API + banco PostgreSQ
 docker compose up -d --build
 ```
 
+### 🗄️ Ambiente de Banco de Dados e pgAdmin
+
+O projeto inclui o **pgAdmin 4** pré-configurado no Docker Compose para que você possa gerenciar e visualizar as tabelas do banco de dados graficamente de forma simples.
+
+#### 1. Acesso ao pgAdmin
+Após subir os containers com o comando do Docker, abra o navegador e acesse:
+* **URL:** http://localhost:5050
+* **E-mail de Login:** `admin@academia.com`
+* **Senha de Login:** `admin123`
+
+#### 2. Conectando ao Banco (Passo a Passo)
+1. No painel esquerdo do pgAdmin, clique com o botão direito em **Servers** ➔ **Register** ➔ **Server...**
+2. Na aba **General**, defina o nome da conexão como: `AcademiaDB`
+3. Na aba **Connection**, preencha exatamente com estes dados:
+    * **Host name/address:** `postgres` *(nome do serviço configurado no docker)*
+    * **Port:** `5432`
+    * **Maintenance database:** `academia_db`
+    * **Username:** `postgres`
+    * **Password:** `postgres`
+4. Marque a caixinha **Save Password** para não precisar digitar a senha novamente.
+5. Clique em **Save**.
+
+#### 📊 Estrutura de Tabelas Geradas
+Navegando por `Servers ➔ AcademiaDB ➔ Databases ➔ academia_db ➔ Schemas ➔ public ➔ Tables`, você poderá visualizar e inspecionar as tabelas criadas automaticamente via Flyway:
+* `usuarios` | `alunos` | `personais` | `planos` | `matriculas` | `treinos` | `itens_treino` | `exercicios` | `flyway_schema_history`
+
+
 O Docker Compose já cria o container do PostgreSQL e sobe a API conectada a ele automaticamente. A API estará disponível em `http://localhost:8080`.
 
 ### 🖥️ Executando localmente (sem Docker)
