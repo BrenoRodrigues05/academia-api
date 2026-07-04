@@ -1,0 +1,36 @@
+name: Academia API CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build
+        run: mvn clean install
+
+      - name: Run Tests
+        run: mvn test
