@@ -71,6 +71,16 @@ mvn spring-boot:run
 
 Use o token retornado como `Authorization: Bearer SEU_TOKEN`.
 
+## 🧪 Testes Unitários
+
+O projeto conta com testes automatizados desenvolvidos com JUnit 5 e Mockito para validação das regras de negócio do sistema (como a estrutura de treinos).
+
+Para rodar toda a suíte de testes de maneira limpa, isolada e segura, utilize o comando:
+
+```bash
+mvn clean test
+```
+
 ## 📖 Documentação da API
 
 A documentação interativa está disponível via Swagger UI após subir a aplicação:
