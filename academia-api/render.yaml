@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: academia-api
+    runtime: docker
+    plan: free
+    branch: master
+    autoDeploy: true
+
+    dockerBuildContext: ./academia-api
+
+    healthCheckPath: /actuator/health

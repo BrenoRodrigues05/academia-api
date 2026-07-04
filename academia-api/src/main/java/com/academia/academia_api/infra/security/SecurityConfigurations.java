@@ -89,6 +89,8 @@ public class SecurityConfigurations {
                                 "/swagger-ui.html"
                         ).permitAll()
 
+                        .requestMatchers("/actuator/health").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
