@@ -9,8 +9,9 @@ API REST desenvolvida com Spring Boot para gerenciamento de academias, com contr
 - [Controle de Acesso (RBAC)](#-controle-de-acesso-rbac)
 - [Como Executar](#-como-executar)
 - [Primeiro Acesso](#-primeiro-acesso)
+- [Testes Unitários](#-testes-unitários)
 - [Documentação da API](#-documentação-da-api)
-- [Roadmap](#-roadmap)
+- [Roadmap](#️-roadmap)
 - [Autor](#-autor)
 
 ## 🚀 Tecnologias
@@ -54,7 +55,7 @@ Controller → DTO → Service → Mapper (MapStruct) → Entity → Repository 
 
 ```bash
 git clone https://github.com/BrenoRodrigues05/academia-api.git
-cd academia-api
+cd academia-api/academia-api
 ```
 
 ### 🐳 Executando com Docker (Forma Padrão — Recomendada)
@@ -127,7 +128,7 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 - [`docs/ERROS.md`](docs/ERROS.md) — Tratamento de erros e exceptions
 - [`docs/BANCO-DE-DADOS.md`](docs/BANCO-DE-DADOS.md) — Configuração e migrations Flyway
 
-## 🧪 Roadmap
+## 🗺️ Roadmap
 
 - ✅ Autenticação JWT, RBAC, Global Exception Handler, Validações, Paginação e Ordenação
 - ✅ Swagger / OpenAPI 3
