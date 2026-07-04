@@ -24,8 +24,8 @@
 ## DevOps
 
 * ✅ Swagger/OpenAPI
-* ⬜ Docker
-* ⬜ Docker Compose
+* ✅ Docker
+* ✅ Docker Compose
 * ⬜ CI/CD
 
 ## Qualidade
