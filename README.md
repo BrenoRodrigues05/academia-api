@@ -1,5 +1,7 @@
 # 🏋️ Academia API
 
+![CI](https://github.com/BrenoRodrigues05/academia-api/actions/workflows/ci.yml/badge.svg)
+
 API REST desenvolvida com Spring Boot para gerenciamento de academias, com controle de alunos, planos, matrículas, personais, treinos e exercícios, listagens paginadas, autenticação via JWT e RBAC.
 
 ## 📑 Sumário
@@ -162,8 +164,8 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 - ✅ Auditoria de Dados (Spring Data JPA Auditing com BaseEntity)
 - ✅ Testes unitários
 - ✅ Dockerization (API & PostgreSQL via Docker Compose)
+- ✅ CI/CD Pipeline
 - ⬜ Logs, Soft Delete
-- ⬜ CI/CD Pipeline
 
 📖 Roadmap completo em [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
