@@ -20,7 +20,7 @@ jobs:
         env:
           POSTGRES_DB: academia_db
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -45,5 +45,6 @@ jobs:
         env:
             SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/academia_db
             SPRING_DATASOURCE_USERNAME: postgres
-            SPRING_DATASOURCE_PASSWORD: postgres
+            SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+            API_SECURITY_TOKEN_SECRET: "minha-chave-secreta"
         run: mvn clean install
