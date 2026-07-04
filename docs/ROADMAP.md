@@ -26,7 +26,7 @@
 * ✅ Swagger/OpenAPI
 * ✅ Docker
 * ✅ Docker Compose
-* ⬜ CI/CD
+* ✅ CI/CD
 
 ## Qualidade
 
