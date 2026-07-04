@@ -47,4 +47,6 @@ jobs:
             SPRING_DATASOURCE_USERNAME: postgres
             SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
             API_SECURITY_TOKEN_SECRET: "minha-chave-secreta"
+            SPRING_FLYWAY_ENABLED: "false"
+            SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
         run: mvn clean install
