@@ -5,20 +5,31 @@ on:
     branches:
       - master
       - main
-
   pull_request:
     branches:
       - master
       - main
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
-    steps:
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: academia_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -29,8 +40,5 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Build
+      - name: Build and Run Tests
         run: mvn clean install
-
-      - name: Run Tests
-        run: mvn test
