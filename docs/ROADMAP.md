@@ -30,7 +30,7 @@
 
 ## Qualidade
 
-* ⬜ Testes Unitários
+* ✅ Testes Unitários
 * ⬜ Testes de Integração
 * ⬜ Testcontainers
 
