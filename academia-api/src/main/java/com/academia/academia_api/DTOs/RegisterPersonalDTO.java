@@ -63,7 +63,7 @@ public record RegisterPersonalDTO(
                 description = "Principal foco ou especialidade de atuação profissional do personal",
                 example = "Hipertrofia e Emagrecimento"
         )
-        String Black,
+        String especialidade,
 
         @Schema(
                 description = "Gênero/Sexo do personal trainer",
