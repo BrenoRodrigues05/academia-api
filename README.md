@@ -107,9 +107,9 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 - ✅ Autenticação JWT, RBAC, Global Exception Handler, Validações, Paginação e Ordenação
 - ✅ Swagger / OpenAPI 3
 - ✅ Auditoria de Dados (Spring Data JPA Auditing com BaseEntity)
+- ✅ Testes unitários 
 - ⬜ Logs, Soft Delete
 - ⬜ Docker, CI/CD
-- ⬜ Testes unitários e de integração
 
 📖 Roadmap completo em [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
