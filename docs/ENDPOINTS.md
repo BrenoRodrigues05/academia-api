@@ -152,6 +152,13 @@ PATCH  /api/treinos/{id}/status
 DELETE /api/treinos/{id}
 ```
 
+---
+
+## 📋 Execuções de treinos
+
+```http
+POST    /api/execucoes/iniciar/{treinoId}
+
 ### Regra de Segurança dos Treinos
 
 ```text
