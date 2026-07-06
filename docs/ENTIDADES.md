@@ -38,6 +38,7 @@ Responsável pela autenticação e controle de acesso do sistema.
 | dataNascimento | LocalDate | |
 | sexo | SexoEnum | [MASCULINO, FEMININO] |
 | usuario | Usuarios | Relacionamento 1:1 |
+| execucoes | List&lt;ExecucaoTreino&gt; | Relacionamento OneToMany (Mapeado por `aluno`) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
 
 ---
@@ -91,6 +92,7 @@ Responsável pela autenticação e controle de acesso do sistema.
 | dataInicio | LocalDate |
 | dataFim | LocalDate |
 | personal | Personal | Relacionamento N:1 (Criador) |
+| execucoes | List&lt;ExecucaoTreino&gt; | Relacionamento OneToMany (Mapeado por `treino`) |
 | aluno | Aluno | Relacionamento N:1 (Destinatário) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
 
@@ -105,6 +107,19 @@ Responsável pela autenticação e controle de acesso do sistema.
 | grupoMuscular | String | Ex: Peito |
 | descricao | String | Link de vídeo ou instruções |
 | *Herda de BaseEntity* | - | Campos de auditoria |
+
+---
+
+## 🏋️ Execução Treino
+
+| Campo | Tipo | Observação |
+| :--- | :--- | :--- |
+| **id** | Long | Chave Primária (Auto-incremento) |
+| **treino** | Treino | Relacionamento ManyToOne (Chave Estrangeira: `treino_id`) |
+| **aluno** | Aluno | Relacionamento ManyToOne (Chave Estrangeira: `aluno_id`) |
+| **dataExecucao** | LocalDateTime | Data e hora em que o treino foi realizado |
+| **concluido** | Boolean | Status de conclusão do treino |
+| **observacoes** | String | Notas adicionais (Máx: 500 caracteres) |
 
 ---
 
@@ -173,6 +188,7 @@ src/main/java/com/academia/academia_api
 │   ├── Matricula
 │   ├── Personal
 │   ├── Treino
+|   ├── ExecucaoTreino
 │   ├── Exercicio
 │   ├── ItemTreino
 │   └── enums
