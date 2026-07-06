@@ -25,5 +25,7 @@ public interface TreinoRepository extends JpaRepository<Treino, Long> {
 
     List<Treino> findByAlunoIdOrderByDataInicioDesc(Long alunoId);
 
+    List<Treino> findByAlunoUsuarioIdOrderByDataInicioDesc(Long usuarioId);
+
     boolean existsByAlunoIdAndAtivoTrue(Long alunoId);
 }

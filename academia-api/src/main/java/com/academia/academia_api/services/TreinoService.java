@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -128,16 +129,20 @@ public class TreinoService {
         return treinoMapper.toResponseDTO(treino);
     }
 
+    public List<TreinoResponseDTO> getMeuHistorico(){
+        Usuarios usuario = getUsuarioLogado();
+
+        return treinoRepository
+                .findByAlunoUsuarioIdOrderByDataInicioDesc(usuario.getId())
+                .stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+    }
+
     public List<TreinoResponseDTO> historicoAluno(Long alunoId){
         if (alunoId == null || alunoId <= 0) {
             throw new BadRequestException("O ID do aluno informado é inválido.");
         }
-
-        Aluno aluno = alunoRepository.findById(alunoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com o ID: " + alunoId));
-
-        validarAluno(aluno);
-
         List<Treino> treinos = treinoRepository.findByAlunoIdOrderByDataInicioDesc(alunoId);
 
         if(treinos == null || treinos.isEmpty()){
@@ -147,6 +152,18 @@ public class TreinoService {
         return treinos.stream()
                 .map(treinoMapper::toResponseDTO)
                 .toList();
+     }
+
+     public TreinoResponseDTO getMeutreino(){
+
+         Usuarios usuario = getUsuarioLogado();
+
+         Treino treino = treinoRepository
+                 .findByAlunoIdAndAtivoTrue(usuario.getId())
+                 .orElseThrow(() ->
+                         new ResourceNotFoundException("Nenhum treino ativo encontrado."));
+
+         return treinoMapper.toResponseDTO(treino);
      }
 
     public TreinoResponseDTO addTreino(@NonNull TreinoCreateDTO dto) {
@@ -172,6 +189,8 @@ public class TreinoService {
         treino.setPersonal(personal);
         treino.setAluno(aluno);
         treino.setAtivo(true);
+        treino.setDataInicio(LocalDate.now());
+        treino.setDataFim(null);
 
         Treino treinoSalvo = treinoRepository.save(treino);
         return treinoMapper.toResponseDTO(treinoSalvo);
@@ -209,6 +228,16 @@ public class TreinoService {
         }
 
         validarPermissaoTreino(treino);
+        if (ativo) {
+
+            treino.setDataInicio(LocalDate.now());
+            treino.setDataFim(null);
+
+        } else {
+
+            treino.setDataFim(LocalDate.now());
+
+        }
         treino.setAtivo(ativo);
         treinoRepository.save(treino);
 

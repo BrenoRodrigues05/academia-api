@@ -60,6 +60,30 @@ public class TreinoController {
     }
 
     @Operation(
+            summary = "Busca treino do aluno logado."
+    )
+    @GetMapping("/me")
+    public ResponseEntity<TreinoResponseDTO> meuTreino() {
+
+        return ResponseEntity.ok(
+                treinoService.getMeutreino()
+        );
+
+    }
+
+    @Operation(
+            summary = "Busca histórico do aluno logado."
+    )
+    @GetMapping("/me/historico")
+    public ResponseEntity<List<TreinoResponseDTO>> meuHistorico() {
+
+        return ResponseEntity.ok(
+                treinoService.getMeuHistorico()
+        );
+
+    }
+
+    @Operation(
             summary = "Buscar treinos inativos."
     )
     @GetMapping("/inativos")

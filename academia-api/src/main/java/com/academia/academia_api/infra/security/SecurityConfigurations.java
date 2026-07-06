@@ -58,10 +58,13 @@ public class SecurityConfigurations {
 
                         .requestMatchers(HttpMethod.GET, "/api/treinos/aluno/**").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
                         .requestMatchers(HttpMethod.GET, "/api/treinos/{id}").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
+                        .requestMatchers(HttpMethod.GET, "/api/treinos/me"). hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
+                        .requestMatchers(HttpMethod.GET, "/api/treinos/me/historico"). hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
+
 
                         .requestMatchers(HttpMethod.GET, "/api/treinos").hasAnyRole("ADMIN", "PERSONAL")
                         .requestMatchers(HttpMethod.GET, "/api/treinos/**").hasAnyRole("ADMIN", "PERSONAL")
-                        .requestMatchers(HttpMethod.GET, "/api/treinos/aluno/{id}/historico"). hasAnyRole("SUPERADMIN", "PERSONAL", "ALUNO")
+                        .requestMatchers(HttpMethod.GET, "/api/treinos/aluno/{id}/historico"). hasAnyRole("SUPERADMIN", "PERSONAL")
 
                         .requestMatchers(HttpMethod.POST, "/api/treinos")
                         .hasAnyRole("ADMIN", "PERSONAL")
