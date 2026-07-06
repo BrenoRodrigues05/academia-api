@@ -86,6 +86,9 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/api/matriculas").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
                         .requestMatchers(HttpMethod.PATCH, "/api/matriculas/**").hasRole("ADMIN")
 
+                        // Ececuções de treino
+                        .requestMatchers(HttpMethod.POST, "/api/execucoes/iniciar/{treinoId}").hasAnyRole("SUPERADMIN","Aluno")
+
                         // Swagger
                         .requestMatchers(
                                 "/v3/api-docs/**",
