@@ -140,6 +140,7 @@ GET    /api/treinos
 GET    /api/treinos/{id}
 GET    /api/treinos/ativos
 GET    /api/treinos/inativos
+GET    /api/treinos/aluno/{id}/historico
 GET    /api/treinos/busca-nome
 GET    /api/treinos/personal/{personalId}
 GET    /api/treinos/aluno/{alunoId}
