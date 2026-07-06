@@ -3,6 +3,8 @@ package com.academia.academia_api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,6 +21,10 @@ public class Treino extends BaseEntity{
     private String observacoes;
 
     private Boolean ativo = true;
+
+    private LocalDate dataInicio;
+
+    private LocalDate dataFim;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")

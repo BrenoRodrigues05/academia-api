@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -53,6 +55,18 @@ public class TreinoResponseDTO {
             example = "12"
     )
     private Long alunoId;
+
+    @Schema(
+            description = "Status que indica data de incio do treino",
+            example = "06/07/2026"
+    )
+    private LocalDate dataInicio;
+
+    @Schema(
+            description = "Status que indica data de fim do treino",
+            example = "06/08/2026"
+    )
+    private LocalDate dataFim;
 
     @Schema(
             description = "Nome completo do aluno proprietário do treino",

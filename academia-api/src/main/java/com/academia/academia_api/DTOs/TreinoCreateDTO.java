@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,4 +37,18 @@ public class TreinoCreateDTO {
     )
     @NotNull(message = "É necessário selecionar um aluno.")
     private Long alunoId;
+
+    @Schema(
+            description = "Status que indica data de incio do treino",
+            example = "06/07/2026"
+    )
+    @NotNull(message = "A data de inicio é obrigatória.")
+    private LocalDate dataInicio;
+
+    @Schema(
+            description = "Status que indica data de fim do treino",
+            example = "06/08/2026"
+    )
+    @NotNull(message = "A data final é obrigatória.")
+    private LocalDate dataFim;
 }
