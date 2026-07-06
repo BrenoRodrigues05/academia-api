@@ -158,6 +158,7 @@ DELETE /api/treinos/{id}
 
 ```http
 POST    /api/execucoes/iniciar/{treinoId}
+```
 
 ### Regra de Segurança dos Treinos
 
