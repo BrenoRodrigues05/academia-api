@@ -36,7 +36,7 @@
 
 ## Funcionalidades Futuras
 
-* ⬜ Histórico de treinos
+* ✅ Histórico de treinos
 * ⬜ Evolução de carga/peso
 * ⬜ Upload de imagens dos exercícios
 * ⬜ Refresh Token
