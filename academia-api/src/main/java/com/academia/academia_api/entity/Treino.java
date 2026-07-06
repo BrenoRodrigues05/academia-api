@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -25,6 +27,9 @@ public class Treino extends BaseEntity{
     private LocalDate dataInicio;
 
     private LocalDate dataFim;
+
+    @OneToMany(mappedBy = "treino")
+    private List<ExecucaoTreino> execucoes = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "personal_id")

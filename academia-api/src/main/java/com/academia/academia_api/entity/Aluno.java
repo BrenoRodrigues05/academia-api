@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,4 +35,6 @@ public class Aluno extends BaseEntity{
     @OneToOne
     @JoinColumn(name = "usuario_id", unique = true)
     private Usuarios usuario;
+    @OneToMany(mappedBy = "aluno")
+    private List<ExecucaoTreino> execucoes = new ArrayList<>();
 }
