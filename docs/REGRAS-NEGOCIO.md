@@ -29,6 +29,7 @@
 ## Treinos
 
 * Um aluno pode possuir apenas um treino ativo
+* Um aluno pode visualizar seu histórico completo de treinos
 * Todo treino deve possuir um personal responsável
 * O personal é obtido automaticamente pelo usuário autenticado
 * Apenas o personal criador pode editar ou excluir o treino
