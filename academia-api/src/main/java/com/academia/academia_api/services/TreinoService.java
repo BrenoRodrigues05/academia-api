@@ -22,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -125,6 +127,22 @@ public class TreinoService {
 
         return treinoMapper.toResponseDTO(treino);
     }
+
+    public List<TreinoResponseDTO> historicoAluno(Long alunoId){
+        if (alunoId == null || alunoId <= 0) {
+            throw new BadRequestException("O ID do aluno informado é inválido.");
+        }
+
+        List<Treino> treinos = treinoRepository.findByAlunoIdOrderByDataInicioDesc(alunoId);
+
+        if(treinos.isEmpty()){
+            throw new ResourceNotFoundException("Treinos não encontrados para o aluno: " +alunoId+ ".");
+        }
+
+        return treinos.stream()
+                .map(treinoMapper::toResponseDTO)
+                .toList();
+     }
 
     public TreinoResponseDTO addTreino(@NonNull TreinoCreateDTO dto) {
         Usuarios usuario = getUsuarioLogado();

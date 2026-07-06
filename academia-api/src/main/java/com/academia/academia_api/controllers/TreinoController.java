@@ -68,6 +68,14 @@ public class TreinoController {
     }
 
     @Operation(
+            summary = "Busca histório de treinos de um aluno."
+    )
+    @GetMapping("aluno/{id}/historico")
+    public ResponseEntity<List<TreinoResponseDTO>> historicoAluno(@PathVariable Long alunoId){
+        return ResponseEntity.ok(treinoService.historicoAluno(alunoId));
+    }
+
+    @Operation(
             summary = "Buscar treino por Nome."
     )
     @GetMapping("/busca-nome")
