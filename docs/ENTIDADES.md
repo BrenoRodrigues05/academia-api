@@ -88,6 +88,8 @@ Responsável pela autenticação e controle de acesso do sistema.
 | nome | String | Ex: Treino A - Hipertrofia |
 | observacoes | String | Dicas gerais de execução |
 | ativo | Boolean | |
+| dataInicio | LocalDate |
+| dataFim | LocalDate |
 | personal | Personal | Relacionamento N:1 (Criador) |
 | aluno | Aluno | Relacionamento N:1 (Destinatário) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
@@ -179,12 +181,24 @@ src/main/java/com/academia/academia_api
 │       └── TipoPlano
 │
 ├── infra
+|   ├── config
+|   |   ├── AuditorAwareImpl
+|   |   ├── JpaAuditingConfig
+|   |   └──  OpenApiConfig
+|   | 
 │   ├── security
+|   |   ├── DataLoader
 │   │   ├── SecurityConfigurations
 │   │   ├── SecurityFilter
 │   │   └── TokenService
 │   │
 │   └── exceptions
+|        ├── BadRequestException
+|        ├── ErrorResponse
+|        ├── ForbiddenException
+|        ├── GlobalExceptionHandler
+|        ├── ResourceNotFoundException
+|        └── ValidationErrorResponse
 │
 ├── mappings
 │
