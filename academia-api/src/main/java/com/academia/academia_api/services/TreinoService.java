@@ -133,9 +133,14 @@ public class TreinoService {
             throw new BadRequestException("O ID do aluno informado é inválido.");
         }
 
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com o ID: " + alunoId));
+
+        validarAluno(aluno);
+
         List<Treino> treinos = treinoRepository.findByAlunoIdOrderByDataInicioDesc(alunoId);
 
-        if(treinos.isEmpty()){
+        if(treinos == null || treinos.isEmpty()){
             throw new ResourceNotFoundException("Treinos não encontrados para o aluno: " +alunoId+ ".");
         }
 
