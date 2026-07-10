@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
         description = "Endpoints responsáveis pela autenticação e gerenciamento de usuários."
 )
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired

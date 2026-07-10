@@ -37,8 +37,8 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(auth -> auth
 
                         // Login
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
 
                         // Alunos
                         .requestMatchers(HttpMethod.GET, "/api/alunos/**")
@@ -94,7 +94,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.PATCH, "/api/matriculas/**").hasRole("ADMIN")
 
                         // Ececuções de treino
-                        .requestMatchers(HttpMethod.POST, "/api/execucoes/iniciar/{treinoId}").hasAnyRole("SUPERADMIN","Aluno")
+                        .requestMatchers(HttpMethod.POST, "/api/execucoes/iniciar/{treinoId}").hasAnyRole("SUPERADMIN","ALUNO")
 
                         // Swagger
                         .requestMatchers(
