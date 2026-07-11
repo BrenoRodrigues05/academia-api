@@ -13,6 +13,7 @@ import com.academia.academia_api.infra.exceptions.ForbiddenException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
+import com.academia.academia_api.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -47,6 +49,12 @@ class AlunoServiceTest {
     @Mock
     private AlunoMapper alunoMapper;
 
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private AlunoService alunoService;
 
@@ -61,6 +69,11 @@ class AlunoServiceTest {
         aluno.setEmail("joao@email.com");
         aluno.setSexo(SexoEnum.MASCULINO);
         aluno.setDataNascimento(LocalDate.of(1999, 12, 5));
+
+        Usuarios usuarioMock = new Usuarios();
+        usuarioMock.setId(10L);
+        usuarioMock.setLogin("joao@email.com");
+        aluno.setUsuario(usuarioMock);
 
         responseDTO = new AlunoResponseDTO();
         responseDTO.setId(1L);
@@ -145,6 +158,14 @@ class AlunoServiceTest {
         @DisplayName("Deve salvar um novo aluno com sucesso")
         void deveCadastrarAlunoComSucesso() {
             AlunoCreateDTO createDTO = new AlunoCreateDTO();
+            createDTO.setEmail("joao@email.com");
+
+            Usuarios usuarioSalvo = new Usuarios();
+            usuarioSalvo.setId(10L);
+            usuarioSalvo.setLogin("joao@email.com");
+
+            when(passwordEncoder.encode(anyString())).thenReturn("senhaCriptografadaTexto");
+            when(usuarioRepository.save(any(Usuarios.class))).thenReturn(usuarioSalvo);
 
             when(alunoMapper.toEntity(createDTO)).thenReturn(aluno);
             when(alunoRepository.save(aluno)).thenReturn(aluno);
@@ -154,6 +175,9 @@ class AlunoServiceTest {
 
             assertNotNull(resultado);
             assertEquals("João Paulo", resultado.getNome());
+
+            verify(passwordEncoder, times(1)).encode("Aluno@123");
+            verify(usuarioRepository, times(1)).save(any(Usuarios.class));
             verify(alunoRepository, times(1)).save(aluno);
         }
     }

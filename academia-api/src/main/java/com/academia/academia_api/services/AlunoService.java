@@ -30,16 +30,14 @@ public class AlunoService {
 
     private final AlunoRepository alunoRepository;
     private final AlunoMapper alunoMapper;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    public AlunoService(AlunoRepository alunoRepository, AlunoMapper alunoMapper) {
+    public AlunoService(AlunoRepository alunoRepository, AlunoMapper alunoMapper, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.alunoRepository = alunoRepository;
         this.alunoMapper = alunoMapper;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public PageResponseDTO<AlunoResponseDTO> findAll(
