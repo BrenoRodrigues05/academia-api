@@ -13,10 +13,14 @@ import com.academia.academia_api.infra.exceptions.ForbiddenException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
+import com.academia.academia_api.repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +30,12 @@ public class AlunoService {
 
     private final AlunoRepository alunoRepository;
     private final AlunoMapper alunoMapper;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public AlunoService(AlunoRepository alunoRepository, AlunoMapper alunoMapper) {
         this.alunoRepository = alunoRepository;
@@ -65,9 +75,20 @@ public class AlunoService {
         return alunoMapper.toResponseDTO(aluno);
     }
 
+    @Transactional
     public AlunoResponseDTO addAluno(AlunoCreateDTO createDTO) {
 
+        Usuarios novoUsuario = new Usuarios();
+        novoUsuario.setLogin(createDTO.getEmail());
+
+        novoUsuario.setSenha(passwordEncoder.encode("Aluno@123"));
+        novoUsuario.setRole(UserRole.ALUNO);
+        novoUsuario.setAtivo(true);
+
+        Usuarios usuarioSalvo = usuarioRepository.save(novoUsuario);
+
         Aluno alunoEntity = alunoMapper.toEntity(createDTO);
+        alunoEntity.setUsuario(usuarioSalvo);
 
         Aluno alunoSalvo = alunoRepository.save(alunoEntity);
 
