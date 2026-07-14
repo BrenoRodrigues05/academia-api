@@ -242,6 +242,63 @@ class AlunoServiceTest {
         }
     }
 
+
+    @Nested
+    @DisplayName("Cenários de Alternância de Status (alternarStatusAluno)")
+    class AlternarStatusAlunoTests {
+
+        @BeforeEach
+        void setupStatus() {
+
+            aluno.getUsuario().setAtivo(true);
+        }
+
+        @Test
+        @DisplayName("Deve alternar o status do aluno com sucesso")
+        void deveAlternarStatusComSucesso() {
+
+            when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
+            when(alunoRepository.save(aluno)).thenReturn(aluno);
+            when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
+
+            AlunoResponseDTO resultado = alunoService.alternarStatusAluno(1L, false);
+
+            assertNotNull(resultado);
+            assertFalse(aluno.getUsuario().getAtivo(), "O status do usuário deveria ter sido alterado para false");
+            verify(alunoRepository, times(1)).findById(1L);
+            verify(alunoRepository, times(1)).save(aluno);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o ID fornecido for nulo")
+        void deveLancarErroSeIdForNulo() {
+            assertThrows(BadRequestException.class, () -> alunoService.alternarStatusAluno(null, false));
+            verify(alunoRepository, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se o aluno não for encontrado")
+        void deveLancarErroSeAlunoNaoEncontrado() {
+            when(alunoRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> alunoService.alternarStatusAluno(99L, false));
+            verify(alunoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o aluno já possuir o status desejado")
+        void deveLancarErroSeStatusJaForOMesmo() {
+            when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
+
+            BadRequestException excecao = assertThrows(BadRequestException.class,
+                    () -> alunoService.alternarStatusAluno(1L, true)
+            );
+
+            assertEquals("Aluno já possui o status selecionado.", excecao.getMessage());
+            verify(alunoRepository, never()).save(any());
+        }
+    }
+
     @Nested
     @DisplayName("Cenários de Exclusão (deleteAluno)")
     class DeleteAlunoTests {
