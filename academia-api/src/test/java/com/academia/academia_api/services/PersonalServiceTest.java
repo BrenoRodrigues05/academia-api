@@ -119,7 +119,7 @@ class PersonalServiceTest {
         @Test
         @DisplayName("Deve buscar por e-mail com sucesso")
         void deveBuscarPorEmail() {
-            when(personalRepository.findByEmail("lais@email.com")).thenReturn(Optional.of(personal));
+            when(personalRepository.findByEmailContainingIgnoreCase("lais@email.com")).thenReturn(Optional.of(personal));
             when(personalMapper.toResponseDTO(personal)).thenReturn(responseDTO);
 
             PersonalResponseDTO resultado = personalService.findByEmail("lais@email.com");
@@ -131,7 +131,7 @@ class PersonalServiceTest {
         @Test
         @DisplayName("Deve buscar uma lista de personals pelo nome")
         void deveBuscarPorNome() {
-            when(personalRepository.findByNome("Lais Silva")).thenReturn(List.of(personal));
+            when(personalRepository.findByNomeContainingIgnoreCase("Lais Silva")).thenReturn(List.of(personal));
             when(personalMapper.toResponseDTO(personal)).thenReturn(responseDTO);
 
             List<PersonalResponseDTO> resultado = personalService.findByNome("Lais Silva");
@@ -184,7 +184,7 @@ class PersonalServiceTest {
             createDTO.setEmail("lais@email.com");
             createDTO.setCref("CREF 123456-G/PE");
 
-            when(personalRepository.findByEmail("lais@email.com")).thenReturn(Optional.empty());
+            when(personalRepository.findByEmailContainingIgnoreCase("lais@email.com")).thenReturn(Optional.empty());
             when(personalRepository.findByCref("CREF 123456-G/PE")).thenReturn(Optional.empty());
             when(personalMapper.toEntity(createDTO)).thenReturn(personal);
             when(personalRepository.save(personal)).thenReturn(personal);
@@ -202,7 +202,7 @@ class PersonalServiceTest {
             PersonalCreateDTO createDTO = new PersonalCreateDTO();
             createDTO.setEmail("lais@email.com");
 
-            when(personalRepository.findByEmail("lais@email.com")).thenReturn(Optional.of(personal));
+            when(personalRepository.findByEmailContainingIgnoreCase("lais@email.com")).thenReturn(Optional.of(personal));
 
             assertThrows(BadRequestException.class, () -> personalService.addPersonal(createDTO));
             verify(personalRepository, never()).save(any());

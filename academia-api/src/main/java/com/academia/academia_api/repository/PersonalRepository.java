@@ -9,9 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface PersonalRepository extends JpaRepository<Personal, Long> {
-    Optional<Personal> findByEmail(String email);
+    Optional<Personal> findByEmailContainingIgnoreCase(String email);
     Optional<Personal> findByCref(String cref);
-    List<Personal> findByNome(String nome);
+    List<Personal> findByNomeContainingIgnoreCase(String nome);
     List<Personal> findByAtivoFalse();
     List<Personal> findByAtivoTrue();
     Optional<Personal> findByUsuarioId(Long usuarioId);

@@ -81,7 +81,7 @@ public class PlanoService {
         if (nome == null || nome.trim().isEmpty()) {
             throw new BadRequestException("O nome informado para busca é inválido ou vazio.");
         }
-        Plano plano = planoRepository.findByNome(nome);
+        Plano plano = planoRepository.findByNomeContainingIgnoreCase(nome);
 
         if (plano == null) {
             throw new ResourceNotFoundException("Plano não encontrado com o nome: " + nome);
@@ -95,7 +95,7 @@ public class PlanoService {
             throw new BadRequestException("A descrição informada para busca é inválida ou vazia.");
         }
 
-        Plano plano = planoRepository.findByDescricao(descricao);
+        Plano plano = planoRepository.findByDescricaoContainingIgnoreCase(descricao);
 
         if (plano == null) {
             throw new ResourceNotFoundException("Plano não encontrado com a descrição informada.");

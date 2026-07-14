@@ -41,7 +41,7 @@ public class AuthService {
             throw new BadRequestException("Login já utilizado.");
         }
 
-        if (alunoRepository.findByEmail(dto.email()) != null) {
+        if (alunoRepository.findByEmailContainingIgnoreCase(dto.email()) != null) {
             throw new BadRequestException("O e-mail informado já está cadastrado.");
         }
 

@@ -80,7 +80,7 @@ class AuthServiceTest {
             RegisterAlunoDTO dto = criarDtoValido();
 
             when(usuarioRepository.existsByLogin(dto.login())).thenReturn(false);
-            when(alunoRepository.findByEmail(dto.email())).thenReturn(null);
+            when(alunoRepository.findByEmailContainingIgnoreCase(dto.email())).thenReturn(null);
             when(passwordEncoder.encode(dto.senha())).thenReturn("senha_criptografada");
 
             when(usuarioRepository.save(any(Usuarios.class))).thenAnswer(invocation -> {
@@ -127,7 +127,7 @@ class AuthServiceTest {
             RegisterAlunoDTO dto = criarDtoValido();
 
             when(usuarioRepository.existsByLogin(dto.login())).thenReturn(false);
-            when(alunoRepository.findByEmail(dto.email())).thenReturn(new Aluno());
+            when(alunoRepository.findByEmailContainingIgnoreCase(dto.email())).thenReturn(new Aluno());
 
             BadRequestException exception = assertThrows(BadRequestException.class,
                     () -> authService.registerAluno(dto));

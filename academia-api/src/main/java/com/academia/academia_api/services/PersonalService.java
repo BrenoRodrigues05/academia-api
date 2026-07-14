@@ -66,7 +66,7 @@ public class PersonalService {
             throw new BadRequestException("O e-mail informado é inválido ou vazio.");
         }
 
-        Personal personal = personalRepository.findByEmail(email)
+        Personal personal = personalRepository.findByEmailContainingIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Personal não encontrado com o e-mail: " + email));
 
         return personalMapper.toResponseDTO(personal);
@@ -77,7 +77,7 @@ public class PersonalService {
             throw new BadRequestException("O nome informado é inválido ou vazio.");
         }
 
-        List<Personal> buscaPersonal = personalRepository.findByNome(nome);
+        List<Personal> buscaPersonal = personalRepository.findByNomeContainingIgnoreCase(nome);
         if (buscaPersonal.isEmpty()) {
             throw new ResourceNotFoundException("Nenhum personal encontrado com o nome: " + nome);
         }
@@ -108,7 +108,7 @@ public class PersonalService {
     }
 
     public PersonalResponseDTO addPersonal(PersonalCreateDTO personalCreateDTO) {
-        if (personalRepository.findByEmail(personalCreateDTO.getEmail()).isPresent()) {
+        if (personalRepository.findByEmailContainingIgnoreCase(personalCreateDTO.getEmail()).isPresent()) {
             throw new BadRequestException("Já existe um personal cadastrado com este e-mail.");
         }
 

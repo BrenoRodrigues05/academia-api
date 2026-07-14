@@ -8,8 +8,8 @@ import java.math.BigDecimal;
 @Repository
 public interface PlanoRepository extends JpaRepository<Plano, Long> {
 
-    Plano findByNome(String nome);
-    Plano findByDescricao(String descricao);
+    Plano findByNomeContainingIgnoreCase(String nome);
+    Plano findByDescricaoContainingIgnoreCase(String descricao);
     Plano findByTipo(TipoPlano tipo);
     Plano findByValor(BigDecimal valor);
 }

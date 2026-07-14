@@ -145,7 +145,7 @@ public class AlunoService {
         if (nome == null || nome.isEmpty()) {
             throw new BadRequestException("Nome inválido para a busca.");
         }
-        List<Aluno> buscaAlunos = alunoRepository.findByNome(nome);
+        List<Aluno> buscaAlunos = alunoRepository.findByNomeContainingIgnoreCase(nome);
         if (buscaAlunos.isEmpty()) {
             throw new ResourceNotFoundException("Nenhum aluno encontrado com esse nome.");
         }
@@ -159,7 +159,7 @@ public class AlunoService {
         if (email == null || email.isEmpty()) {
             throw new BadRequestException("E-mail nulo ou vazio.");
         }
-        var buscaAluno = alunoRepository.findByEmail(email);
+        var buscaAluno = alunoRepository.findByEmailContainingIgnoreCase(email);
         if (buscaAluno == null) {
             throw new ResourceNotFoundException("Aluno não encontrado.");
         }

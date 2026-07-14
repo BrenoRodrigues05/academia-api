@@ -179,7 +179,7 @@ class PlanoServiceTest {
         @Test
         @DisplayName("Deve buscar plano pelo nome exato com sucesso")
         void deveBuscarPorNome() {
-            when(planoRepository.findByNome("Plano Mensal")).thenReturn(plano);
+            when(planoRepository.findByNomeContainingIgnoreCase("Plano Mensal")).thenReturn(plano);
             when(planoMapper.toResponseDTO(plano)).thenReturn(responseDTO);
 
             PlanoResponseDTO resultado = planoService.BuscarPeloNome("Plano Mensal");
@@ -191,14 +191,14 @@ class PlanoServiceTest {
         @Test
         @DisplayName("Deve lançar ResourceNotFoundException se a busca por nome retornar nulo")
         void deveTratarNomeNaoEncontrado() {
-            when(planoRepository.findByNome("Inexistente")).thenReturn(null);
+            when(planoRepository.findByNomeContainingIgnoreCase("Inexistente")).thenReturn(null);
             assertThrows(ResourceNotFoundException.class, () -> planoService.BuscarPeloNome("Inexistente"));
         }
 
         @Test
         @DisplayName("Deve buscar plano por sua descrição")
         void deveBuscarPorDescricao() {
-            when(planoRepository.findByDescricao("Acesso livre à musculação")).thenReturn(plano);
+            when(planoRepository.findByDescricaoContainingIgnoreCase("Acesso livre à musculação")).thenReturn(plano);
             when(planoMapper.toResponseDTO(plano)).thenReturn(responseDTO);
 
             PlanoResponseDTO resultado = planoService.BuscarPeloDescricao("Acesso livre à musculação");

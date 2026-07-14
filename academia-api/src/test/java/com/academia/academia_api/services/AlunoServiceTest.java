@@ -329,7 +329,7 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve buscar alunos por nome com sucesso")
         void deveBuscarPorNome() {
-            when(alunoRepository.findByNome("João")).thenReturn(List.of(aluno));
+            when(alunoRepository.findByNomeContainingIgnoreCase("João")).thenReturn(List.of(aluno));
             when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
 
             List<AlunoResponseDTO> resultado = alunoService.findByNome("João");
@@ -348,7 +348,7 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve buscar por e-mail com sucesso")
         void deveBuscarPorEmail() {
-            when(alunoRepository.findByEmail("joao@email.com")).thenReturn(aluno);
+            when(alunoRepository.findByEmailContainingIgnoreCase("joao@email.com")).thenReturn(aluno);
             when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
 
             AlunoResponseDTO resultado = alunoService.findByEmail("joao@email.com");
