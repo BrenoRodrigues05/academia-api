@@ -82,6 +82,7 @@ GET    /api/alunos/busca-email
 GET    /api/alunos/busca-sexo
 GET    /api/alunos/busca-idade
 POST   /api/alunos
+PATCH  /api/alunos/{id}/ativo
 PUT    /api/alunos/{id}
 DELETE /api/alunos/{id}
 ```
@@ -100,7 +101,7 @@ GET    /api/personais/ativos
 GET    /api/personais/inativos
 POST   /api/personais
 PUT    /api/personais/{id}
-PATCH  /api/personais/{id}/status
+PATCH  /api/personais/{id}/ativo
 DELETE /api/personais/{id}
 ```
 
