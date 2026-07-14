@@ -118,7 +118,27 @@ public class AlunoService {
         Aluno alunoDeletado = alunoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado para exclusão."));
 
+        alunoRepository.delete(alunoDeletado);
         return alunoMapper.toResponseDTO(alunoDeletado);
+    }
+
+    @Transactional
+    public AlunoResponseDTO alternarStatusAluno(Long id, boolean novoStatus) {
+        if (id == null) {
+            throw new BadRequestException("O ID fornecido não pode ser nulo.");
+        }
+
+        Aluno buscaAluno = alunoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado."));
+
+        if (buscaAluno.getUsuario().getAtivo() == novoStatus) {
+            throw new BadRequestException("Aluno já possui o status selecionado.");
+        }
+
+        buscaAluno.getUsuario().setAtivo(novoStatus);
+        alunoRepository.save(buscaAluno);
+
+        return alunoMapper.toResponseDTO(buscaAluno);
     }
 
     public List<AlunoResponseDTO> findByNome(String nome) {

@@ -47,6 +47,9 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/api/alunos")
                         .hasAnyRole("ADMIN")
 
+                        .requestMatchers(HttpMethod.PATCH, "/api/alunos/{id}/ativo")
+                        .hasAnyRole("ADMIN")
+
                         .requestMatchers(HttpMethod.PUT, "/api/alunos/**")
                         .hasAnyRole("ADMIN", "ALUNO")
 

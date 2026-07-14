@@ -113,6 +113,15 @@ public class AlunoController {
     }
 
     @Operation(
+            summary = "Alterar Status do aluno."
+    )
+    @PatchMapping("/{id}/ativo")
+    public ResponseEntity<AlunoResponseDTO> alternarStatusAluno(@PathVariable Long id, boolean novoStatus){
+        AlunoResponseDTO alunoInativo = alunoService.alternarStatusAluno(id, novoStatus);
+        return ResponseEntity.ok(alunoInativo);
+    }
+
+    @Operation(
             summary = "Excluir aluno."
     )
     @DeleteMapping("/{id}")
