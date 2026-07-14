@@ -1,5 +1,6 @@
 package com.academia.academia_api.DTOs;
 
+import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.SexoEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -51,4 +52,6 @@ public class AlunoResponseDTO {
             example = "MASCULINO"
     )
     private SexoEnum sexo;
+
+    private Usuarios usuario;
 }
