@@ -155,16 +155,18 @@ public class AlunoService {
                 .toList();
     }
 
-    public AlunoResponseDTO findByEmail(String email) {
+    public List<AlunoResponseDTO> findByEmail(String email) {
         if (email == null || email.isEmpty()) {
             throw new BadRequestException("E-mail nulo ou vazio.");
         }
-        var buscaAluno = alunoRepository.findByEmailContainingIgnoreCase(email);
-        if (buscaAluno == null) {
+        List<Aluno> buscaAlunos = alunoRepository.findByEmailContainingIgnoreCase(email);
+        if (buscaAlunos.isEmpty()) {
             throw new ResourceNotFoundException("Aluno não encontrado.");
         }
 
-        return alunoMapper.toResponseDTO(buscaAluno);
+        return buscaAlunos.stream()
+                .map(alunoMapper::toResponseDTO)
+                .toList();
     }
 
     public PageResponseDTO<AlunoResponseDTO> findBySexo(SexoEnum sexo, int page,  int size) {

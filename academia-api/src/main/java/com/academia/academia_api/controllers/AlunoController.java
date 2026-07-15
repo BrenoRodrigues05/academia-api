@@ -69,7 +69,7 @@ public class AlunoController {
             summary = "Buscar aluno por E-Mail."
     )
     @GetMapping("/busca-email")
-    public ResponseEntity<AlunoResponseDTO> findByEmail(@RequestParam String email) {
+    public ResponseEntity<List<AlunoResponseDTO>> findByEmail(@RequestParam String email) {
         return ResponseEntity.ok(alunoService.findByEmail(email));
     }
 

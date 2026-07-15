@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -127,7 +128,7 @@ class AuthServiceTest {
             RegisterAlunoDTO dto = criarDtoValido();
 
             when(usuarioRepository.existsByLogin(dto.login())).thenReturn(false);
-            when(alunoRepository.findByEmailContainingIgnoreCase(dto.email())).thenReturn(new Aluno());
+            when(alunoRepository.findByEmailContainingIgnoreCase(dto.email())).thenReturn(List.of(new Aluno()));
 
             BadRequestException exception = assertThrows(BadRequestException.class,
                     () -> authService.registerAluno(dto));

@@ -348,13 +348,13 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve buscar por e-mail com sucesso")
         void deveBuscarPorEmail() {
-            when(alunoRepository.findByEmailContainingIgnoreCase("joao@email.com")).thenReturn(aluno);
+            when(alunoRepository.findByEmailContainingIgnoreCase("joao@email.com")).thenReturn(List.of(aluno));
             when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
 
-            AlunoResponseDTO resultado = alunoService.findByEmail("joao@email.com");
+            List<AlunoResponseDTO> resultado = alunoService.findByEmail("joao@email.com");
 
-            assertNotNull(resultado);
-            assertEquals("joao@email.com", resultado.getEmail());
+            assertFalse(resultado.isEmpty());
+            assertEquals(1, resultado.size());
         }
 
         @Test
