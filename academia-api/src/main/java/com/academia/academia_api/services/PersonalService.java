@@ -5,14 +5,19 @@ import com.academia.academia_api.DTOs.PersonalCreateDTO;
 import com.academia.academia_api.DTOs.PersonalResponseDTO;
 import com.academia.academia_api.DTOs.PersonalUpdateDTO;
 import com.academia.academia_api.entity.Personal;
+import com.academia.academia_api.entity.Usuarios;
+import com.academia.academia_api.entity.enums.UserRole;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.PersonalMapper;
 import com.academia.academia_api.repository.PersonalRepository;
+import com.academia.academia_api.repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,10 +27,14 @@ public class PersonalService {
 
     private final PersonalRepository personalRepository;
     private final PersonalMapper personalMapper;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public PersonalService(PersonalRepository personalRepository, PersonalMapper personalMapper) {
+    public PersonalService(PersonalRepository personalRepository, PersonalMapper personalMapper, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.personalRepository = personalRepository;
         this.personalMapper = personalMapper;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public PageResponseDTO<PersonalResponseDTO> findAll(int page, int size) {
@@ -108,6 +117,7 @@ public class PersonalService {
                 .toList();
     }
 
+    @Transactional
     public PersonalResponseDTO addPersonal(PersonalCreateDTO personalCreateDTO) {
         if (personalRepository.findByEmailContainingIgnoreCase(personalCreateDTO.getEmail()).isPresent()) {
             throw new BadRequestException("Já existe um personal cadastrado com este e-mail.");
@@ -117,7 +127,18 @@ public class PersonalService {
             throw new BadRequestException("Já existe um personal cadastrado com este CREF.");
         }
 
+        Usuarios novoUsuario = new Usuarios();
+        novoUsuario.setLogin(personalCreateDTO.getEmail());
+        novoUsuario.setSenha(passwordEncoder.encode("Mudar@123"));
+        novoUsuario.setRole(UserRole.PERSONAL);
+        novoUsuario.setAtivo(true);
+
+        Usuarios usuarioSalvo = usuarioRepository.save(novoUsuario);
+
         Personal personalEntity = personalMapper.toEntity(personalCreateDTO);
+        personalEntity.setUsuario(usuarioSalvo);
+        personalEntity.setAtivo(true);
+
         Personal novoPersonal = personalRepository.save(personalEntity);
 
         return personalMapper.toResponseDTO(novoPersonal);

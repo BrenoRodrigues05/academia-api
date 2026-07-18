@@ -5,9 +5,11 @@ import com.academia.academia_api.DTOs.PersonalCreateDTO;
 import com.academia.academia_api.DTOs.PersonalResponseDTO;
 import com.academia.academia_api.DTOs.PersonalUpdateDTO;
 import com.academia.academia_api.entity.Personal;
+import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.mappings.PersonalMapper;
 import com.academia.academia_api.repository.PersonalRepository;
+import com.academia.academia_api.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +37,12 @@ class PersonalServiceTest {
 
     @Mock
     private PersonalMapper personalMapper;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private PersonalService personalService;
@@ -175,14 +184,23 @@ class PersonalServiceTest {
     class AddPersonalTests {
 
         @Test
-        @DisplayName("Deve cadastrar um personal com sucesso se e-mail e CREF forem inéditos")
+        @DisplayName("Deve cadastrar um personal com sucesso e criar seu usuário associado")
         void deveCadastrarComSucesso() {
+            // Arrange
             PersonalCreateDTO createDTO = new PersonalCreateDTO();
             createDTO.setEmail("lais@email.com");
             createDTO.setCref("CREF 123456-G/PE");
 
             when(personalRepository.findByEmailContainingIgnoreCase("lais@email.com")).thenReturn(Optional.empty());
             when(personalRepository.findByCref("CREF 123456-G/PE")).thenReturn(Optional.empty());
+
+            when(passwordEncoder.encode("Mudar@123")).thenReturn("senhaCriptografada");
+
+            Usuarios usuarioMockado = new Usuarios();
+            usuarioMockado.setId(1L);
+            usuarioMockado.setLogin("lais@email.com");
+            when(usuarioRepository.save(any(Usuarios.class))).thenReturn(usuarioMockado);
+
             when(personalMapper.toEntity(createDTO)).thenReturn(personal);
             when(personalRepository.save(personal)).thenReturn(personal);
             when(personalMapper.toResponseDTO(personal)).thenReturn(responseDTO);
@@ -190,6 +208,8 @@ class PersonalServiceTest {
             PersonalResponseDTO resultado = personalService.addPersonal(createDTO);
 
             assertNotNull(resultado);
+            verify(passwordEncoder, times(1)).encode("Mudar@123");
+            verify(usuarioRepository, times(1)).save(any(Usuarios.class));
             verify(personalRepository, times(1)).save(personal);
         }
 
@@ -230,7 +250,6 @@ class PersonalServiceTest {
         void deveAlterarStatusAtivo() {
             when(personalRepository.findById(1L)).thenReturn(Optional.of(personal));
 
-            // Alterando o estado original de true para false no teste
             personal.setAtivo(true);
 
             when(personalRepository.save(personal)).thenReturn(personal);
