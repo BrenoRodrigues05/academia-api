@@ -15,10 +15,10 @@ import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,7 +45,7 @@ public class AlunoService {
             int size) {
 
         Pageable pageable =
-                PageRequest.of(page, size);
+                PageRequest.of(page, size, Sort.by("nome").ascending());
 
         Page<Aluno> alunos =
                 alunoRepository.findAll(pageable);

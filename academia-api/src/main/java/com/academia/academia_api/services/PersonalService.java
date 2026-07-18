@@ -12,6 +12,7 @@ import com.academia.academia_api.repository.PersonalRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class PersonalService {
     }
 
     public PageResponseDTO<PersonalResponseDTO> findAll(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
         Page<Personal> personals = personalRepository.findAll(pageable);
 
         return new PageResponseDTO<>(

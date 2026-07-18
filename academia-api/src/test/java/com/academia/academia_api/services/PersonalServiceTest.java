@@ -16,10 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +65,7 @@ class PersonalServiceTest {
         @Test
         @DisplayName("Deve retornar uma página de personals com sucesso")
         void deveRetornarPaginaDePersonals() {
-            Pageable pageable = PageRequest.of(0, 10);
+            Pageable pageable = PageRequest.of(0, 10, Sort.by("nome").ascending());
             Page<Personal> page = new PageImpl<>(List.of(personal));
 
             when(personalRepository.findAll(pageable)).thenReturn(page);
