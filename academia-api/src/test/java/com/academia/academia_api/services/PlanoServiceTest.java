@@ -1,8 +1,7 @@
 package com.academia.academia_api.services;
 
-import com.academia.academia_api.DTOs.PlanoCreateDTO;
-import com.academia.academia_api.DTOs.PlanoResponseDTO;
-import com.academia.academia_api.DTOs.PlanoUpdateDTO;
+import com.academia.academia_api.DTOs.*;
+import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Plano;
 import com.academia.academia_api.entity.enums.TipoPlano;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -66,14 +66,19 @@ class PlanoServiceTest {
         @Test
         @DisplayName("Deve retornar uma lista de todos os planos")
         void deveRetornarTodosOsPlanos() {
-            when(planoRepository.findAll()).thenReturn(List.of(plano));
+            Pageable pageable = PageRequest.of(0, 10, Sort.by("nome").ascending());
+            Page<Plano> page = new PageImpl<>(List.of(plano));
+
+            when(planoRepository.findAll(pageable)).thenReturn(page);
             when(planoMapper.toResponseDTO(plano)).thenReturn(responseDTO);
 
-            List<PlanoResponseDTO> resultado = planoService.findAll();
+            PageResponseDTO<PlanoResponseDTO> resultado = planoService.findAll(0, 10);
 
-            assertFalse(resultado.isEmpty());
-            assertEquals(1, resultado.size());
-            verify(planoRepository, times(1)).findAll();
+            assertNotNull(resultado);
+            assertEquals(1, resultado.content().size());
+            assertEquals(0, resultado.page());
+            assertEquals(1, resultado.totalElements());
+            verify(planoRepository, times(1)).findAll(pageable);
         }
     }
 

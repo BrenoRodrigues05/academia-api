@@ -1,14 +1,16 @@
 package com.academia.academia_api.services;
 
-import com.academia.academia_api.DTOs.PlanoCreateDTO;
-import com.academia.academia_api.DTOs.PlanoResponseDTO;
-import com.academia.academia_api.DTOs.PlanoUpdateDTO;
+import com.academia.academia_api.DTOs.*;
 import com.academia.academia_api.entity.Plano;
 import com.academia.academia_api.entity.enums.TipoPlano;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.PlanoMapper;
 import com.academia.academia_api.repository.PlanoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,10 +27,27 @@ public class PlanoService {
         this.planoMapper = planoMapper;
     }
 
-    public List<PlanoResponseDTO> findAll() {
-        return planoRepository.findAll().stream()
-                .map(planoMapper::toResponseDTO)
-                .toList();
+    public PageResponseDTO<PlanoResponseDTO> findAll(
+            int page,
+            int size) {
+
+        Pageable pageable =
+                PageRequest.of(page, size, Sort.by("nome").ascending());
+
+        Page<Plano> planos =
+                planoRepository.findAll(pageable);
+
+        return new PageResponseDTO<>(
+                planos.getContent()
+                        .stream()
+                        .map(planoMapper::toResponseDTO)
+                        .toList(),
+
+                planos.getNumber(),
+                planos.getSize(),
+                planos.getTotalElements(),
+                planos.getTotalPages()
+        );
     }
 
     public PlanoResponseDTO findById(Long id) {

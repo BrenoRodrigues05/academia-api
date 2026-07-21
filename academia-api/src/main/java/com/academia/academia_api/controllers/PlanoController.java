@@ -1,7 +1,5 @@
 package com.academia.academia_api.controllers;
-import com.academia.academia_api.DTOs.PlanoCreateDTO;
-import com.academia.academia_api.DTOs.PlanoResponseDTO;
-import com.academia.academia_api.DTOs.PlanoUpdateDTO;
+import com.academia.academia_api.DTOs.*;
 import com.academia.academia_api.entity.enums.TipoPlano;
 import com.academia.academia_api.services.PlanoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,8 +31,18 @@ public class PlanoController {
             description = "Lista todos os planos com paginação, filtros e ordenação."
     )
     @GetMapping
-    public ResponseEntity<List<PlanoResponseDTO>> listarPlanos() {
-        return ResponseEntity.ok(planoService.findAll());
+    public ResponseEntity<PageResponseDTO<PlanoResponseDTO>> findAll(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+
+        return ResponseEntity.ok(
+                planoService.findAll(page, size)
+        );
     }
 
     @Operation(
