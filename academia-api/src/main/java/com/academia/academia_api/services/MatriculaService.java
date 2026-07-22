@@ -57,7 +57,10 @@ public class MatriculaService {
         return matriculaMapper.toResponseDTO(matricula);
     }
 
-    public MatriculaResponseDTO criarMatricula(MatriculaCreateDTO dto, Long idAluno, Long idPlano) {
+    public MatriculaResponseDTO criarMatricula(MatriculaCreateDTO dto) {
+        Long idAluno = dto.getAlunoId();
+        Long idPlano = dto.getPlanoId();
+
         if (idAluno == null || idAluno <= 0 || idPlano == null || idPlano <= 0) {
             throw new BadRequestException("Os IDs de aluno e plano devem ser válidos e maiores que zero.");
         }
@@ -76,23 +79,23 @@ public class MatriculaService {
         Matricula novaMatricula = matriculaMapper.toEntity(dto);
         novaMatricula.setAluno(aluno);
         novaMatricula.setPlano(plano);
-        novaMatricula.setAtiva(true);
+        novaMatricula.setAtiva(dto.isAtiva());
 
         Matricula salva = matriculaRepositoy.save(novaMatricula);
         return matriculaMapper.toResponseDTO(salva);
     }
 
-    public MatriculaResponseDTO desativarMatricula(Long idMatricula) {
+    public MatriculaResponseDTO alterarStatus(Long idMatricula, boolean novoStatus) {
         if (idMatricula == null || idMatricula <= 0) {
             throw new BadRequestException("O ID da matrícula informado é inválido.");
         }
 
-        var buscaMatricula = matriculaRepositoy.findByMatriculaAndAtiva(idMatricula, true);
-        if (buscaMatricula == null) {
-            throw new ResourceNotFoundException("Matrícula não encontrada ou já se encontra inativa.");
+        var buscaMatricula = matriculaRepositoy.findByMatricula(idMatricula, novoStatus);
+        if (buscaMatricula == null || novoStatus == buscaMatricula.isAtiva() ) {
+            throw new ResourceNotFoundException("Matrícula não encontrada ou já possui o status selecionado.");
         }
 
-        buscaMatricula.setAtiva(false);
+        buscaMatricula.setAtiva(novoStatus);
         Matricula matriculaAtualizada = matriculaRepositoy.save(buscaMatricula);
 
         return matriculaMapper.toResponseDTO(matriculaAtualizada);

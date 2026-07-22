@@ -54,12 +54,9 @@ public class MatriculaController {
     )
     @PostMapping
     public ResponseEntity<MatriculaResponseDTO> criarMatricula(
-            @Valid @RequestBody MatriculaCreateDTO dto,
-            @RequestParam Long idAluno,
-            @RequestParam Long idPlano) {
+            @Valid @RequestBody MatriculaCreateDTO dto){
 
-        MatriculaResponseDTO novaMatricula =
-                matriculaService.criarMatricula(dto, idAluno, idPlano);
+        MatriculaResponseDTO novaMatricula = matriculaService.criarMatricula(dto);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -69,9 +66,9 @@ public class MatriculaController {
     @Operation(
             summary = "Desativa uma Matricula ativa por Id."
     )
-    @PatchMapping("/{id}/desativar")
-    public ResponseEntity<MatriculaResponseDTO> deletarMatricula(@PathVariable Long id){
-        MatriculaResponseDTO matriculaDesativada = matriculaService.desativarMatricula(id);
+    @PatchMapping("/{id}/ativo")
+    public ResponseEntity<MatriculaResponseDTO> alterarStatus(@PathVariable Long id, @RequestParam boolean novoStatus){
+        MatriculaResponseDTO matriculaDesativada = matriculaService.alterarStatus(id, novoStatus);
         return ResponseEntity.ok(matriculaDesativada);
     }
 }
