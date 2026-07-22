@@ -129,7 +129,8 @@ DELETE /api/planos/{id}
 GET    /api/matriculas
 GET    /api/matriculas/{id}
 POST   /api/matriculas
-PATCH  /api/matriculas/{id}/desativar
+PUT    /api/{idMatricula}/plano/{idPlano}
+PATCH  /api/{id}/ativo
 ```
 
 ---
