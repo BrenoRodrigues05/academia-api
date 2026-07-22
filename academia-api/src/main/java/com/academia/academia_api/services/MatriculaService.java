@@ -85,6 +85,23 @@ public class MatriculaService {
         return matriculaMapper.toResponseDTO(salva);
     }
 
+    public  MatriculaResponseDTO editarPlanoMatricula(Long idMatricula, Long idPlano){
+        if (idMatricula == null || idMatricula <= 0) {
+            throw new BadRequestException("O ID da matrícula informado é inválido.");
+        }
+
+        Matricula matricula = matriculaRepositoy.findById(idMatricula)
+                .orElseThrow(() -> new ResourceNotFoundException("Matrícula não encontrada com o ID: " + idMatricula));
+
+        Plano plano = planoRepository.findById(idPlano)
+                .orElseThrow(() -> new ResourceNotFoundException("Plano não encontrado com o ID: " + idPlano));
+
+        matricula.setPlano(plano);
+        matriculaRepositoy.save(matricula);
+
+        return matriculaMapper.toResponseDTO(matricula);
+    }
+
     public MatriculaResponseDTO alterarStatus(Long idMatricula, boolean novoStatus) {
         if (idMatricula == null || idMatricula <= 0) {
             throw new BadRequestException("O ID da matrícula informado é inválido.");

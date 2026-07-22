@@ -168,6 +168,75 @@ class MatriculaServiceTest {
             assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemPlano));
         }
 
+        @Nested
+        @DisplayName("Cenários de Edição de Plano (editarPlanoMatricula)")
+        class EditarPlanoMatriculaTests {
+
+            private Plano novoPlano;
+
+            @BeforeEach
+            void setUpEditarPlano() {
+                novoPlano = new Plano();
+                novoPlano.setId(8L);
+            }
+
+            @Test
+            @DisplayName("Deve editar o plano da matrícula com sucesso")
+            void deveEditarPlanoComSucesso() {
+
+                when(matriculaRepositoy.findById(10L)).thenReturn(Optional.of(matricula));
+                when(planoRepository.findById(8L)).thenReturn(Optional.of(novoPlano));
+                when(matriculaRepositoy.save(any(Matricula.class))).thenReturn(matricula);
+                when(matriculaMapper.toResponseDTO(matricula)).thenReturn(responseDTO);
+
+                MatriculaResponseDTO resultado = matriculaService.editarPlanoMatricula(10L, 8L);
+
+                assertNotNull(resultado);
+                assertEquals(8L, matricula.getPlano().getId());
+                verify(matriculaRepositoy, times(1)).findById(10L);
+                verify(planoRepository, times(1)).findById(8L);
+                verify(matriculaRepositoy, times(1)).save(matricula);
+                verify(matriculaMapper, times(1)).toResponseDTO(matricula);
+            }
+
+            @Test
+            @DisplayName("Deve lançar BadRequestException se o ID da matrícula for inválido")
+            void deveValidarIdMatriculaInvalido() {
+                assertThrows(BadRequestException.class, () -> matriculaService.editarPlanoMatricula(null, 8L));
+                assertThrows(BadRequestException.class, () -> matriculaService.editarPlanoMatricula(0L, 8L));
+
+                verify(matriculaRepositoy, never()).findById(any());
+            }
+
+            @Test
+            @DisplayName("Deve lançar ResourceNotFoundException se a matrícula não existir")
+            void deveLancarErroSeMatriculaNaoExiste() {
+                // Given
+                when(matriculaRepositoy.findById(99L)).thenReturn(Optional.empty());
+
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                        () -> matriculaService.editarPlanoMatricula(99L, 8L));
+
+                assertEquals("Matrícula não encontrada com o ID: 99", exception.getMessage());
+                verify(planoRepository, never()).findById(any());
+                verify(matriculaRepositoy, never()).save(any());
+            }
+
+            @Test
+            @DisplayName("Deve lançar ResourceNotFoundException se o plano informado não existir")
+            void deveLancarErroSePlanoNaoExiste() {
+                // Given
+                when(matriculaRepositoy.findById(10L)).thenReturn(Optional.of(matricula));
+                when(planoRepository.findById(99L)).thenReturn(Optional.empty());
+
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                        () -> matriculaService.editarPlanoMatricula(10L, 99L));
+
+                assertEquals("Plano não encontrado com o ID: 99", exception.getMessage());
+                verify(matriculaRepositoy, never()).save(any());
+            }
+        }
+
         @Test
         @DisplayName("Deve lançar BadRequestException se o aluno já possuir uma matrícula ativa")
         void deveBloquearMatriculaDuplicadaAtiva() {

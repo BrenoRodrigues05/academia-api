@@ -15,6 +15,7 @@
 * Não é permitido criar matrícula para aluno inexistente
 * Não é permitido criar matrícula para plano inexistente
 * Matrículas são desativadas ao invés de removidas fisicamente
+* É possível editar um plano dentro de uma matrícula ativa
 
 ---
 

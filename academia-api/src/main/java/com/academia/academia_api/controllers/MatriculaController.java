@@ -64,6 +64,16 @@ public class MatriculaController {
     }
 
     @Operation(
+            summary = "Editar o plano de uma Matricula."
+    )
+    @PutMapping("/{idMatricula}/plano/{idPlano}")
+    public ResponseEntity<MatriculaResponseDTO> editarPlano(@PathVariable Long idMatricula, @PathVariable Long idPlano) {
+
+        MatriculaResponseDTO response = matriculaService.editarPlanoMatricula(idMatricula, idPlano);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
             summary = "Desativa uma Matricula ativa por Id."
     )
     @PatchMapping("/{id}/ativo")
