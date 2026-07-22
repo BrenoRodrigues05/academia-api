@@ -176,59 +176,6 @@ class ItemTreinoServiceTest {
     }
 
     @Nested
-    @DisplayName("Cenários de Inclusão (addItemTreino)")
-    class AddItemTreinoTests {
-
-        private ItemTreinoCreateDTO criarDto() {
-            ItemTreinoCreateDTO dto = new ItemTreinoCreateDTO();
-            dto.setTreinoId(10L);
-            dto.setExercicioId(20L);
-            return dto;
-        }
-
-        @Test
-        @DisplayName("Deve adicionar um item de treino com sucesso")
-        void deveAdicionarComSucesso() {
-            ItemTreinoCreateDTO dto = criarDto();
-
-            when(treinoRepository.findById(10L)).thenReturn(Optional.of(treino));
-            when(exercicioRepository.findById(20L)).thenReturn(Optional.of(exercicio));
-            when(itemTreinoRepository.existsByTreinoIdAndExercicioId(10L, 20L)).thenReturn(false);
-            when(itemTreinoMapper.toEntity(dto)).thenReturn(itemTreino);
-            when(itemTreinoRepository.save(itemTreino)).thenReturn(itemTreino);
-            when(itemTreinoMapper.toResponseDTO(itemTreino)).thenReturn(responseDTO);
-
-            ItemTreinoResponseDTO resultado = itemTreinoService.addItemTreino(dto);
-
-            assertNotNull(resultado);
-            verify(itemTreinoRepository, times(1)).save(itemTreino);
-        }
-
-        @Test
-        @DisplayName("Deve lançar BadRequestException se os IDs obrigatórios forem nulos")
-        void deveValidarIdsObrigatorios() {
-            ItemTreinoCreateDTO dtoInvalido = new ItemTreinoCreateDTO();
-            assertThrows(BadRequestException.class, () -> itemTreinoService.addItemTreino(dtoInvalido));
-        }
-
-        @Test
-        @DisplayName("Deve lançar BadRequestException se o exercício já estiver vinculado ao mesmo treino")
-        void deveImpedirExercicioDuplicadoNoMesmoTreino() {
-            ItemTreinoCreateDTO dto = criarDto();
-
-            when(treinoRepository.findById(10L)).thenReturn(Optional.of(treino));
-            when(exercicioRepository.findById(20L)).thenReturn(Optional.of(exercicio));
-            when(itemTreinoRepository.existsByTreinoIdAndExercicioId(10L, 20L)).thenReturn(true);
-
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> itemTreinoService.addItemTreino(dto));
-
-            assertEquals("Este exercício já foi adicionado a este treino.", exception.getMessage());
-            verify(itemTreinoRepository, never()).save(any());
-        }
-    }
-
-    @Nested
     @DisplayName("Cenários de Atualização (updateItemTreino)")
     class UpdateItemTreinoTests {
 

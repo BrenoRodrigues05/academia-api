@@ -40,13 +40,6 @@ public class ItemTreinoCreateDTO {
     private Integer descansoSegundos;
 
     @Schema(
-            description = "Identificador único do treino vinculado",
-            example = "2"
-    )
-    @NotNull(message = "O treino é obrigatório.")
-    private Long treinoId;
-
-    @Schema(
             description = "Identificador único do exercício vinculado",
             example = "5"
     )

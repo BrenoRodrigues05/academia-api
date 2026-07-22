@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,6 +39,14 @@ public class TreinoCreateDTO {
     @NotNull(message = "É necessário selecionar um aluno.")
     private Long alunoId;
 
+
+    @Schema(
+            description = "Identificador único do personal é dono do treino.",
+            example = "12"
+    )
+    @NotNull(message = "É necessário selecionar um personal.")
+    private Long personalId;
+
     @Schema(
             description = "Status que indica data de incio do treino",
             example = "06/07/2026"
@@ -51,4 +60,10 @@ public class TreinoCreateDTO {
     )
     @NotNull(message = "A data final é obrigatória.")
     private LocalDate dataFim;
+
+    @Schema(
+            description = "Item do treino."
+    )
+    @NotNull(message = "O item do treino é obrigatório.")
+    private List<ItemTreinoCreateDTO> itens;
 }

@@ -1,21 +1,14 @@
 package com.academia.academia_api.services;
 
-import com.academia.academia_api.DTOs.PageResponseDTO;
-import com.academia.academia_api.DTOs.TreinoCreateDTO;
-import com.academia.academia_api.DTOs.TreinoResponseDTO;
-import com.academia.academia_api.DTOs.TreinoUpdateDTO;
-import com.academia.academia_api.entity.Aluno;
-import com.academia.academia_api.entity.Personal;
-import com.academia.academia_api.entity.Treino;
-import com.academia.academia_api.entity.Usuarios;
+import com.academia.academia_api.DTOs.*;
+import com.academia.academia_api.entity.*;
 import com.academia.academia_api.entity.enums.UserRole;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ForbiddenException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.TreinoMapper;
-import com.academia.academia_api.repository.AlunoRepository;
-import com.academia.academia_api.repository.PersonalRepository;
-import com.academia.academia_api.repository.TreinoRepository;
+import com.academia.academia_api.repository.*;
+import jakarta.transaction.Transactional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,17 +27,22 @@ public class TreinoService {
     private final TreinoMapper treinoMapper;
     private final PersonalRepository personalRepository;
     private final AlunoRepository alunoRepository;
+    private final ItemTreinoRepository itemTreinoRepository;
+    private final ExercicioRepository exercicioRepository;
+
 
     public TreinoService(
             TreinoRepository treinoRepository,
             TreinoMapper treinoMapper,
             PersonalRepository personalRepository,
-            AlunoRepository alunoRepository) {
+            AlunoRepository alunoRepository, ItemTreinoRepository itemTreinoRepository, ExercicioRepository exercicioRepository) {
 
         this.treinoRepository = treinoRepository;
         this.treinoMapper = treinoMapper;
         this.personalRepository = personalRepository;
         this.alunoRepository = alunoRepository;
+        this.itemTreinoRepository = itemTreinoRepository;
+        this.exercicioRepository = exercicioRepository;
     }
 
     public PageResponseDTO<TreinoResponseDTO> findAll(int page, int size) {
@@ -166,48 +164,118 @@ public class TreinoService {
          return treinoMapper.toResponseDTO(treino);
      }
 
+    @Transactional
     public TreinoResponseDTO addTreino(@NonNull TreinoCreateDTO dto) {
+
         Usuarios usuario = getUsuarioLogado();
 
         if (usuario.getRole() != UserRole.PERSONAL
                 && usuario.getRole() != UserRole.ADMIN
                 && usuario.getRole() != UserRole.SUPER_ADMIN) {
-            throw new ForbiddenException("Somente professores ou administradores podem cadastrar treinos.");
+
+            throw new ForbiddenException(
+                    "Somente professores ou administradores podem cadastrar treinos."
+            );
         }
 
         Personal personal = personalRepository.findByUsuarioId(usuario.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vínculo de Personal não localizado para o usuário logado."));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Vínculo de Personal não localizado para o usuário logado."
+                ));
 
         Aluno aluno = alunoRepository.findById(dto.getAlunoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com o ID: " + dto.getAlunoId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Aluno não encontrado com o ID: " + dto.getAlunoId()
+                ));
 
         if (treinoRepository.existsByAlunoIdAndAtivoTrue(aluno.getId())) {
-            throw new BadRequestException("O aluno já possui um treino ativo no sistema.");
+
+            throw new BadRequestException(
+                    "O aluno já possui um treino ativo no sistema."
+            );
         }
 
         Treino treino = treinoMapper.toEntity(dto);
-        treino.setPersonal(personal);
+
         treino.setAluno(aluno);
+        treino.setPersonal(personal);
         treino.setAtivo(true);
-        treino.setDataInicio(LocalDate.now());
-        treino.setDataFim(null);
 
         Treino treinoSalvo = treinoRepository.save(treino);
+
+        List<ItemTreino> itens = new ArrayList<>();
+
+        for (ItemTreinoCreateDTO itemDTO : dto.getItens()) {
+
+            Exercicio exercicio = exercicioRepository
+                    .findById(itemDTO.getExercicioId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Exercício não encontrado com ID: "
+                                            + itemDTO.getExercicioId()
+                            ));
+
+            ItemTreino item = new ItemTreino();
+
+            item.setTreino(treinoSalvo);
+            item.setExercicio(exercicio);
+            item.setSeries(itemDTO.getSeries());
+            item.setRepeticoes(itemDTO.getRepeticoes());
+            item.setDescansoSegundos(itemDTO.getDescansoSegundos());
+
+            itens.add(item);
+        }
+
+        itemTreinoRepository.saveAll(itens);
+
         return treinoMapper.toResponseDTO(treinoSalvo);
     }
 
+    @Transactional
     public TreinoResponseDTO updateTreino(Long id, TreinoUpdateDTO dto) {
+
         if (id == null || id <= 0) {
             throw new BadRequestException("ID inválido ou nulo para atualização.");
         }
 
         Treino treino = treinoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Treino não encontrado para atualização com o ID: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Treino não encontrado para atualização com o ID: " + id
+                        ));
 
         validarPermissaoTreino(treino);
 
         treinoMapper.updateEntityFromDTO(dto, treino);
+
         Treino treinoAtualizado = treinoRepository.save(treino);
+
+        itemTreinoRepository.deleteByTreinoId(treinoAtualizado.getId());
+
+        List<ItemTreino> itens = new ArrayList<>();
+
+        for (ItemTreinoCreateDTO itemDTO : dto.getItens()) {
+
+            Exercicio exercicio = exercicioRepository
+                    .findById(itemDTO.getExercicioId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Exercício não encontrado com ID: "
+                                            + itemDTO.getExercicioId()
+                            ));
+
+            ItemTreino item = new ItemTreino();
+
+            item.setTreino(treinoAtualizado);
+            item.setExercicio(exercicio);
+            item.setSeries(itemDTO.getSeries());
+            item.setRepeticoes(itemDTO.getRepeticoes());
+            item.setDescansoSegundos(itemDTO.getDescansoSegundos());
+
+            itens.add(item);
+        }
+
+        itemTreinoRepository.saveAll(itens);
 
         return treinoMapper.toResponseDTO(treinoAtualizado);
     }

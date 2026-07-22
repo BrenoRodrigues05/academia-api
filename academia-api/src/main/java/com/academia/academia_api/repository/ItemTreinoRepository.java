@@ -15,4 +15,6 @@ public interface ItemTreinoRepository extends JpaRepository<ItemTreino, Long> {
 
     boolean existsByTreinoIdAndExercicioId(Long treinoId, Long exercicioId);
 
+    void deleteByTreinoId(Long treinoId);
+
 }

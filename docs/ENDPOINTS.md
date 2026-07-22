@@ -194,7 +194,6 @@ GET    /api/itens-treino
 GET    /api/itens-treino/{id}
 GET    /api/itens-treino/treino/{treinoId}
 GET    /api/itens-treino/exercicio/{exercicioId}
-POST   /api/itens-treino
 PUT    /api/itens-treino/{id}
 DELETE /api/itens-treino/{id}
 ```

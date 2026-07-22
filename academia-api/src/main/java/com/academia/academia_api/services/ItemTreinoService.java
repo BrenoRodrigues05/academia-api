@@ -1,11 +1,8 @@
 package com.academia.academia_api.services;
 
-import com.academia.academia_api.DTOs.ItemTreinoCreateDTO;
 import com.academia.academia_api.DTOs.ItemTreinoResponseDTO;
 import com.academia.academia_api.DTOs.ItemTreinoUpdateDTO;
-import com.academia.academia_api.entity.Exercicio;
 import com.academia.academia_api.entity.ItemTreino;
-import com.academia.academia_api.entity.Treino;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.ItemTreinoMapper;
@@ -83,29 +80,6 @@ public class ItemTreinoService {
                 .stream()
                 .map(itemTreinoMapper::toResponseDTO)
                 .toList();
-    }
-
-    public ItemTreinoResponseDTO addItemTreino(ItemTreinoCreateDTO dto) {
-        if (dto.getTreinoId() == null || dto.getExercicioId() == null) {
-            throw new BadRequestException("Os IDs de treino e exercício não podem ser nulos.");
-        }
-
-        Treino treino = treinoRepository.findById(dto.getTreinoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Treino não encontrado com o ID: " + dto.getTreinoId()));
-
-        Exercicio exercicio = exercicioRepository.findById(dto.getExercicioId())
-                .orElseThrow(() -> new ResourceNotFoundException("Exercício não encontrado com o ID: " + dto.getExercicioId()));
-
-        if (itemTreinoRepository.existsByTreinoIdAndExercicioId(dto.getTreinoId(), dto.getExercicioId())) {
-            throw new BadRequestException("Este exercício já foi adicionado a este treino.");
-        }
-
-        ItemTreino item = itemTreinoMapper.toEntity(dto);
-        item.setTreino(treino);
-        item.setExercicio(exercicio);
-
-        ItemTreino salvo = itemTreinoRepository.save(item);
-        return itemTreinoMapper.toResponseDTO(salvo);
     }
 
     public ItemTreinoResponseDTO updateItemTreino(Long id, ItemTreinoUpdateDTO dto) {

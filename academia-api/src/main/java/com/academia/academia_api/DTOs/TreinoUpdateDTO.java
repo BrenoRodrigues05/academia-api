@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -41,4 +42,6 @@ public class TreinoUpdateDTO {
             example = "06/08/2026"
     )
     private LocalDate dataFim;
+
+    private List<ItemTreinoCreateDTO> itens;
 }
