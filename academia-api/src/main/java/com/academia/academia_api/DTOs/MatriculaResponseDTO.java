@@ -25,13 +25,13 @@ public class MatriculaResponseDTO {
             description = "Dados do plano vinculado à matrícula",
             example = "{\"id\": 1, \"nome\": \"Plano Anual\", \"preco\": 99.90}"
     )
-    private Plano plano;
+    private PlanoResponseDTO plano;
 
     @Schema(
             description = "Dados do aluno vinculado à matrícula",
             example = "{\"id\": 3, \"nome\": \"João Silva\"}"
     )
-    private Aluno aluno;
+    private AlunoResponseDTO aluno;
 
     @Schema(
             description = "Status de ativação da matrícula",

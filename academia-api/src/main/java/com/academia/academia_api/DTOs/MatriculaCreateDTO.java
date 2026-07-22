@@ -1,7 +1,5 @@
 package com.academia.academia_api.DTOs;
 
-import com.academia.academia_api.entity.Aluno;
-import com.academia.academia_api.entity.Plano;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -13,19 +11,13 @@ import lombok.*;
 @Schema(description = "Dados necessários para a criação de uma nova matrícula")
 public class MatriculaCreateDTO {
 
-    @Schema(
-            description = "Entidade do plano a ser vinculado à matrícula",
-            example = "{\"id\": 1, \"nome\": \"Plano Anual\", \"preco\": 99.90}"
-    )
+    @Schema(description = "ID do plano a ser vinculado", example = "1")
     @NotNull(message = "O plano é obrigatório.")
-    private Plano plano;
+    private Long planoId;
 
-    @Schema(
-            description = "Entidade do aluno que receberá a matrícula",
-            example = "{\"id\": 3, \"nome\": \"João Silva\"}"
-    )
+    @Schema(description = "ID do aluno a ser vinculado", example = "3")
     @NotNull(message = "O aluno referente a matricula é obrigatório.")
-    private Aluno aluno;
+    private Long alunoId;
 
     @Schema(
             description = "Define se a matrícula deve iniciar ativa ou inativa",
