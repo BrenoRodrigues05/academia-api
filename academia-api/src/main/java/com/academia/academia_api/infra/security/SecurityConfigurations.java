@@ -57,8 +57,8 @@ public class SecurityConfigurations {
                         .hasRole("ADMIN")
 
                         // Personais
-                        .requestMatchers("/api/personais/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/personais/**"). hasRole("PERSONAL")
+                        .requestMatchers("/api/personais/**").hasRole("ADMIN")
 
                        // Treinos
                         .requestMatchers(HttpMethod.GET, "/api/treinos/ativos").hasAnyRole("ADMIN", "PERSONAL")
