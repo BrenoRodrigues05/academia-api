@@ -312,6 +312,7 @@ public class TreinoService {
         return treinoMapper.toResponseDTO(treino);
     }
 
+    @Transactional
     public TreinoResponseDTO deleteTreino(Long id) {
         if (id == null || id <= 0) {
             throw new BadRequestException("ID inválido ou nulo para exclusão.");
@@ -321,6 +322,7 @@ public class TreinoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Treino não encontrado para exclusão com o ID: " + id));
 
         validarPermissaoTreino(treino);
+        itemTreinoRepository.deleteByTreinoId(treino.getId());
         treinoRepository.delete(treino);
 
         return treinoMapper.toResponseDTO(treino);

@@ -2,6 +2,7 @@ package com.academia.academia_api.repository;
 
 import com.academia.academia_api.entity.ItemTreino;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,8 +14,7 @@ public interface ItemTreinoRepository extends JpaRepository<ItemTreino, Long> {
 
     List<ItemTreino> findByExercicioId(Long exercicioId);
 
-    boolean existsByTreinoIdAndExercicioId(Long treinoId, Long exercicioId);
-
+    @Modifying
     void deleteByTreinoId(Long treinoId);
 
 }
