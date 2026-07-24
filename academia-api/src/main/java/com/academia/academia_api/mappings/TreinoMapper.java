@@ -10,6 +10,10 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface TreinoMapper {
 
+    @Mapping(source = "aluno.id", target = "alunoId")
+    @Mapping(source = "aluno.nome", target = "nomeAluno")
+    @Mapping(source = "personal.id", target = "personalId")
+    @Mapping(source = "personal.nome", target = "nomePersonal")
     TreinoResponseDTO toResponseDTO(Treino treino);
 
     @Mapping(target = "id", ignore = true)
