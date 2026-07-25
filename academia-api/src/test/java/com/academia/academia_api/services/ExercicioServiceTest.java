@@ -163,13 +163,13 @@ class ExercicioServiceTest {
             List<ExercicioResponseDTO> resultado = exercicioService.findByGrupoMuscular(GrupoMuscular.PEITORAL);
 
             assertFalse(resultado.isEmpty());
-            assertEquals("Peitoral", resultado.get(0).getGrupoMuscular());
+            assertEquals(GrupoMuscular.PEITORAL, resultado.get(0).getGrupoMuscular());
         }
 
         @Test
-        @DisplayName("Deve lançar BadRequestException se o grupo muscular for nulo")
+        @DisplayName("Deve lançar exceção se o grupo muscular for nulo")
         void deveValidarGrupoMuscularInvalido() {
-            assertThrows(BadRequestException.class, () -> exercicioService.findByGrupoMuscular(null));
+            assertThrows(ResourceNotFoundException.class, () -> exercicioService.findByGrupoMuscular(null));
         }
 
         @Test
