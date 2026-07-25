@@ -246,7 +246,13 @@ public class TreinoService {
 
         validarPermissaoTreino(treino);
 
+        Boolean statusAtual = treino.getAtivo();
+
         treinoMapper.updateEntityFromDTO(dto, treino);
+
+        if (dto.getAtivo() == null) {
+            treino.setAtivo(statusAtual);
+        }
 
         Treino treinoAtualizado = treinoRepository.save(treino);
 
