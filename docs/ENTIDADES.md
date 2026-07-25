@@ -93,6 +93,7 @@ Responsável pela autenticação e controle de acesso do sistema.
 | dataFim | LocalDate |
 | personal | Personal | Relacionamento N:1 (Criador) |
 | execucoes | List&lt;ExecucaoTreino&gt; | Relacionamento OneToMany (Mapeado por `treino`) |
+| itensTreino | List&lt;ItensTreino&gt; | Relacionamento OneToMany (Mapeado por `treino`) |
 | aluno | Aluno | Relacionamento N:1 (Destinatário) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
 
