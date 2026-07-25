@@ -1,5 +1,6 @@
 package com.academia.academia_api.DTOs;
 
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,7 +30,7 @@ public class ExercicioResponseDTO {
             description = "Grupo muscular principal trabalhado",
             example = "Peitoral"
     )
-    private String grupoMuscular;
+    private GrupoMuscular grupoMuscular;
 
     @Schema(
             description = "Instruções ou descrição detalhada do exercício",

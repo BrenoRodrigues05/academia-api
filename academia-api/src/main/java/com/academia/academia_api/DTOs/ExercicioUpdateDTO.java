@@ -1,7 +1,9 @@
 package com.academia.academia_api.DTOs;
 
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,9 +29,8 @@ public class ExercicioUpdateDTO {
             description = "Grupo muscular principal trabalhado",
             example = "Peitoral"
     )
-    @NotBlank(message = "O grupo muscular é obrigatório.")
-    @Size(max = 50)
-    private String grupoMuscular;
+    @NotNull(message = "O grupo muscular é obrigatório")
+    private GrupoMuscular grupoMuscular;
 
     @Schema(
             description = "Descrição ou instruções de execução atualizadas",

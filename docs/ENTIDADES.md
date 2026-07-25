@@ -194,6 +194,7 @@ src/main/java/com/academia/academia_api
 │   └── enums
 │       ├── UserRole
 │       ├── SexoEnum
+|       ├── GrupoMuscular 
 │       └── TipoPlano
 │
 ├── infra

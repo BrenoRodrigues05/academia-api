@@ -4,6 +4,7 @@ import com.academia.academia_api.DTOs.ExercicioCreateDTO;
 import com.academia.academia_api.DTOs.ExercicioResponseDTO;
 import com.academia.academia_api.DTOs.ExercicioUpdateDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import com.academia.academia_api.services.ExercicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -65,7 +66,7 @@ public class ExercicioController {
             summary = "Buscar Exercícios por Grupo Muscular."
     )
     @GetMapping("/grupo-muscular")
-    public ResponseEntity<List<ExercicioResponseDTO>> findByGrupoMuscular(@RequestParam String grupoMuscular) {
+    public ResponseEntity<List<ExercicioResponseDTO>> findByGrupoMuscular(@RequestParam GrupoMuscular grupoMuscular) {
         return ResponseEntity.ok(
                 exercicioService.findByGrupoMuscular(grupoMuscular));
     }

@@ -5,6 +5,7 @@ import com.academia.academia_api.DTOs.ExercicioResponseDTO;
 import com.academia.academia_api.DTOs.ExercicioUpdateDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Exercicio;
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.ExercicioMapper;
@@ -51,12 +52,12 @@ class ExercicioServiceTest {
         exercicio = new Exercicio();
         exercicio.setId(1L);
         exercicio.setNome("Supino Reto");
-        exercicio.setGrupoMuscular("Peitoral");
+        exercicio.setGrupoMuscular(GrupoMuscular.PEITORAL);
 
         responseDTO = new ExercicioResponseDTO();
         responseDTO.setId(1L);
         responseDTO.setNome("Supino Reto");
-        responseDTO.setGrupoMuscular("Peitoral");
+        responseDTO.setGrupoMuscular(GrupoMuscular.PEITORAL);
     }
 
     @Nested
@@ -156,28 +157,27 @@ class ExercicioServiceTest {
         @Test
         @DisplayName("Deve retornar a lista de exercícios baseada no grupo muscular")
         void deveBuscarPorGrupoMuscularComSucesso() {
-            when(exercicioRepository.findByGrupoMuscularIgnoreCase("Peitoral")).thenReturn(List.of(exercicio));
+            when(exercicioRepository.findByGrupoMuscularIgnoreCase(GrupoMuscular.PEITORAL)).thenReturn(List.of(exercicio));
             when(exercicioMapper.toResponseDTO(exercicio)).thenReturn(responseDTO);
 
-            List<ExercicioResponseDTO> resultado = exercicioService.findByGrupoMuscular("Peitoral");
+            List<ExercicioResponseDTO> resultado = exercicioService.findByGrupoMuscular(GrupoMuscular.PEITORAL);
 
             assertFalse(resultado.isEmpty());
             assertEquals("Peitoral", resultado.get(0).getGrupoMuscular());
         }
 
         @Test
-        @DisplayName("Deve lançar BadRequestException se o grupo muscular for nulo ou em branco")
+        @DisplayName("Deve lançar BadRequestException se o grupo muscular for nulo")
         void deveValidarGrupoMuscularInvalido() {
             assertThrows(BadRequestException.class, () -> exercicioService.findByGrupoMuscular(null));
-            assertThrows(BadRequestException.class, () -> exercicioService.findByGrupoMuscular(""));
         }
 
         @Test
         @DisplayName("Deve lançar ResourceNotFoundException se nenhum exercício pertencer ao grupo informado")
         void deveLancarErroSeGrupoMuscularNaoEncontrado() {
-            when(exercicioRepository.findByGrupoMuscularIgnoreCase("Cardio")).thenReturn(Collections.emptyList());
+            when(exercicioRepository.findByGrupoMuscularIgnoreCase(GrupoMuscular.CARDIO)).thenReturn(Collections.emptyList());
 
-            assertThrows(ResourceNotFoundException.class, () -> exercicioService.findByGrupoMuscular("Cardio"));
+            assertThrows(ResourceNotFoundException.class, () -> exercicioService.findByGrupoMuscular(GrupoMuscular.CARDIO));
         }
     }
 

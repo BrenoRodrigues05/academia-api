@@ -1,5 +1,6 @@
 package com.academia.academia_api.entity;
 
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +20,8 @@ public class Exercicio extends BaseEntity{
 
     private String nome;
 
-    private String grupoMuscular;
+    @Enumerated(EnumType.STRING)
+    private GrupoMuscular grupoMuscular;
 
     private String descricao;
 }

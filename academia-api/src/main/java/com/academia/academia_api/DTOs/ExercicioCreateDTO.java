@@ -1,7 +1,9 @@
 package com.academia.academia_api.DTOs;
 
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,9 +29,8 @@ public class ExercicioCreateDTO {
             description = "Grupo muscular principal trabalhado no exercício",
             example = "Peitoral"
     )
-    @NotBlank(message = "O grupo muscular é obrigatório.")
-    @Size(max = 50, message = "O grupo muscular deve ter no máximo 50 caracteres.")
-    private String grupoMuscular;
+    @NotNull(message = "O grupo muscular é obrigatório")
+    private GrupoMuscular grupoMuscular;
 
     @Schema(
             description = "Breve explicação ou instruções de execução do exercício",

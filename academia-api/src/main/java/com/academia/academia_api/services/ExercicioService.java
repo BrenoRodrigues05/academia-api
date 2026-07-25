@@ -5,6 +5,7 @@ import com.academia.academia_api.DTOs.ExercicioResponseDTO;
 import com.academia.academia_api.DTOs.ExercicioUpdateDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Exercicio;
+import com.academia.academia_api.entity.enums.GrupoMuscular;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.ExercicioMapper;
@@ -71,10 +72,7 @@ public class ExercicioService {
                 .toList();
     }
 
-    public List<ExercicioResponseDTO> findByGrupoMuscular(String grupoMuscular) {
-        if (grupoMuscular == null || grupoMuscular.trim().isEmpty()) {
-            throw new BadRequestException("O grupo muscular informado é inválido.");
-        }
+    public List<ExercicioResponseDTO> findByGrupoMuscular(GrupoMuscular grupoMuscular) {
 
         List<Exercicio> exercicios = exercicioRepository.findByGrupoMuscularIgnoreCase(grupoMuscular);
 
