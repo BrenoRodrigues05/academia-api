@@ -28,6 +28,9 @@ public class Treino extends BaseEntity{
 
     private LocalDate dataFim;
 
+    @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemTreino> itens = new ArrayList<>();
+
     @OneToMany(mappedBy = "treino")
     private List<ExecucaoTreino> execucoes = new ArrayList<>();
 

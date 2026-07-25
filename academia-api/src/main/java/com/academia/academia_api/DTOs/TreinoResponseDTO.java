@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -73,4 +74,6 @@ public class TreinoResponseDTO {
             example = "João Silva Sauro"
     )
     private String nomeAluno;
+
+    private List<ItemTreinoResponseDTO> itens;
 }

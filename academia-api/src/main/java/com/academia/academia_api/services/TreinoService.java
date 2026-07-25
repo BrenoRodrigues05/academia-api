@@ -9,6 +9,7 @@ import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.TreinoMapper;
 import com.academia.academia_api.repository.*;
 import jakarta.transaction.Transactional;
+import org.hibernate.Hibernate;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
