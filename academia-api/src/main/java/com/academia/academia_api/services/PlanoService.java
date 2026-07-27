@@ -50,6 +50,10 @@ public class PlanoService {
         );
     }
 
+    public Long countPlano() {
+        return planoRepository.count();
+    }
+
     public PlanoResponseDTO findById(Long id) {
         if (id == null || id <= 0) {
             throw new BadRequestException("O ID informado é inválido ou nulo.");

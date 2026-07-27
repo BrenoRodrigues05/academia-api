@@ -89,6 +89,36 @@ class PersonalServiceTest {
     }
 
     @Nested
+    @DisplayName("Cenários de Contagem Total de Personais (count)")
+    class CountPersonaisTests {
+
+        @Test
+        @DisplayName("Deve retornar o total de personais cadastrados com sucesso")
+        void deveRetornarTotalDePersonais() {
+
+            long totalEsperado = 12L;
+            when(personalRepository.count()).thenReturn(totalEsperado);
+
+            long resultado = personalService.countPersonal();
+
+            assertEquals(totalEsperado, resultado);
+            verify(personalRepository, times(1)).count();
+        }
+
+        @Test
+        @DisplayName("Deve retornar zero quando não houver personais cadastrados")
+        void deveRetornarZeroQuandoNaoHouverPersonais() {
+
+            when(personalRepository.count()).thenReturn(0L);
+
+            long resultado = personalService.countPersonal();
+
+            assertEquals(0L, resultado);
+            verify(personalRepository, times(1)).count();
+        }
+    }
+
+    @Nested
     @DisplayName("Cenários de Busca por Atributos Únicos (ById, Cref, Email, Nome)")
     class QueryTests {
 

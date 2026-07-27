@@ -76,6 +76,7 @@ Cria:
 
 ```http
 GET    /api/alunos
+GET    /api/alunos/contador
 GET    /api/alunos/{id}
 GET    /api/alunos/busca-nome
 GET    /api/alunos/busca-email
@@ -93,6 +94,7 @@ DELETE /api/alunos/{id}
 
 ```http
 GET    /api/personais
+GET    /api/personais/contador
 GET    /api/personais/{id}
 GET    /api/personais/busca-email
 GET    /api/personais/busca-cref
@@ -111,6 +113,7 @@ DELETE /api/personais/{id}
 
 ```http
 GET    /api/planos
+Get    /api/planos/contador
 GET    /api/planos/{id}
 GET    /api/planos/busca-nome
 GET    /api/planos/busca-valor
@@ -139,6 +142,7 @@ PATCH  /api/{id}/ativo
 
 ```http
 GET    /api/treinos
+GET    /api/treinos/contador
 GET    /api/treinos/{id}
 GET    /api/treinos/ativos
 GET    /api/treinos/inativos

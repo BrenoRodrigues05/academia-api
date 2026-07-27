@@ -45,6 +45,12 @@ public class PlanoController {
         );
     }
 
+    @Operation(summary = "Contador total de planos.")
+    @GetMapping("/contador")
+    public ResponseEntity<Long> countPlano() {
+        return ResponseEntity.ok(planoService.countPlano());
+    }
+
     @Operation(
             summary = "Buscar plano por ID."
     )

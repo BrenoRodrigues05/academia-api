@@ -116,6 +116,36 @@ class AlunoServiceTest {
     }
 
     @Nested
+    @DisplayName("Cenários de Contagem Total de Alunos (countAlunos)")
+    class CountAlunosTests {
+
+        @Test
+        @DisplayName("Deve retornar o total de alunos cadastrados com sucesso")
+        void deveRetornarTotalDeAlunos() {
+
+            long totalEsperado = 42L;
+            when(alunoRepository.count()).thenReturn(totalEsperado);
+
+            long resultado = alunoService.countAluno();
+
+            assertEquals(totalEsperado, resultado);
+            verify(alunoRepository, times(1)).count();
+        }
+
+        @Test
+        @DisplayName("Deve retornar zero quando não houver alunos cadastrados")
+        void deveRetornarZeroQuandoNaoHouverAlunos() {
+
+            when(alunoRepository.count()).thenReturn(0L);
+
+            long resultado = alunoService.countAluno();
+
+            assertEquals(0L, resultado);
+            verify(alunoRepository, times(1)).count();
+        }
+    }
+
+    @Nested
     @DisplayName("Cenários de Busca por ID")
     class FindByIdTests {
 

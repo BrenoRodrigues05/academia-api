@@ -59,6 +59,10 @@ public class TreinoService {
         );
     }
 
+    public Long countTreino() {
+        return treinoRepository.count();
+    }
+
     public TreinoResponseDTO findById(Long id) {
         if (id == null || id <= 0) {
             throw new BadRequestException("O ID informado é inválido ou nulo.");

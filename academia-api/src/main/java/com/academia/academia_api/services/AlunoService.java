@@ -63,6 +63,10 @@ public class AlunoService {
         );
     }
 
+    public Long countAluno() {
+        return alunoRepository.count();
+    }
+
     public AlunoResponseDTO findById(Long id) {
         if (id == null) {
             throw new BadRequestException("O ID fornecido não pode ser nulo.");

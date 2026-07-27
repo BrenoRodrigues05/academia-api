@@ -83,6 +83,36 @@ class PlanoServiceTest {
     }
 
     @Nested
+    @DisplayName("Cenários de Contagem Total de Planos (count)")
+    class CountPlanosTests {
+
+        @Test
+        @DisplayName("Deve retornar o total de planos cadastrados com sucesso")
+        void deveRetornarTotalDePlanos() {
+
+            long totalEsperado = 5L;
+            when(planoRepository.count()).thenReturn(totalEsperado);
+
+            long resultado = planoService.countPlano();
+
+            assertEquals(totalEsperado, resultado);
+            verify(planoRepository, times(1)).count();
+        }
+
+        @Test
+        @DisplayName("Deve retornar zero quando não houver planos cadastrados")
+        void deveRetornarZeroQuandoNaoHouverPlanos() {
+
+            when(planoRepository.count()).thenReturn(0L);
+
+            long resultado = planoService.countPlano();
+
+            assertEquals(0L, resultado);
+            verify(planoRepository, times(1)).count();
+        }
+    }
+
+    @Nested
     @DisplayName("Cenários de Busca por ID (findById)")
     class FindByIdTests {
 

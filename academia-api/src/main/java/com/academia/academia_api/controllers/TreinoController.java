@@ -43,6 +43,12 @@ public class TreinoController {
         return ResponseEntity.ok(treinoService.findAll(page, size));
     }
 
+    @Operation(summary = "Contador total de treinos.")
+    @GetMapping("/contador")
+    public ResponseEntity<Long> countTreino() {
+        return ResponseEntity.ok(treinoService.countTreino());
+    }
+
     @Operation(
             summary = "Buscar treino por ID."
     )

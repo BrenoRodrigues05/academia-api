@@ -8,10 +8,7 @@ import com.academia.academia_api.infra.exceptions.ForbiddenException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.TreinoMapper;
 import com.academia.academia_api.repository.*;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -113,6 +110,35 @@ class TreinoServiceTest {
         assertNotNull(resultado);
         assertEquals(1, resultado.totalElements());
         verify(treinoRepository, times(1)).findAll(pageable);
+    }
+
+    @Nested
+    @DisplayName("Cenários de Contagem Total de Treinos (count)")
+    class CountTreinosTests {
+
+        @Test
+        @DisplayName("Deve retornar o total de treinos cadastrados com sucesso")
+        void deveRetornarTotalDeTreinos() {
+
+            long totalEsperado = 85L;
+            when(treinoRepository.count()).thenReturn(totalEsperado);
+            long resultado = treinoService.countTreino();
+
+            assertEquals(totalEsperado, resultado);
+            verify(treinoRepository, times(1)).count();
+        }
+
+        @Test
+        @DisplayName("Deve retornar zero quando não houver treinos cadastrados")
+        void deveRetornarZeroQuandoNaoHouverTreinos() {
+
+            when(treinoRepository.count()).thenReturn(0L);
+
+            long resultado = treinoService.countTreino();
+
+            assertEquals(0L, resultado);
+            verify(treinoRepository, times(1)).count();
+        }
     }
 
     @Test

@@ -49,6 +49,12 @@ public class AlunoController {
         );
     }
 
+    @Operation(summary = "Contador total de alunos.")
+    @GetMapping("/contador")
+    public ResponseEntity<Long> countAluno() {
+        return ResponseEntity.ok(alunoService.countAluno());
+    }
+
     @Operation(
             summary = "Buscar aluno por ID."
     )

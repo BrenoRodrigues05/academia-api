@@ -43,6 +43,12 @@ public class PersonalController {
         return ResponseEntity.ok(personalService.findAll(page, size));
     }
 
+    @Operation(summary = "Contador total de personais.")
+    @GetMapping("/contador")
+    public ResponseEntity<Long> countPersonal() {
+        return ResponseEntity.ok(personalService.countPersonal());
+    }
+
     @Operation(
             summary = "Buscar personal por ID."
     )

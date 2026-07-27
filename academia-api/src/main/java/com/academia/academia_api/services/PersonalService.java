@@ -50,6 +50,10 @@ public class PersonalService {
         );
     }
 
+    public Long countPersonal() {
+        return personalRepository.count();
+    }
+
     public PersonalResponseDTO findById(Long id) {
         if (id == null || id <= 0) {
             throw new BadRequestException("O ID informado é inválido ou nulo.");
