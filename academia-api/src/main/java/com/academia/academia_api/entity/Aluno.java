@@ -37,4 +37,6 @@ public class Aluno extends BaseEntity{
     private Usuarios usuario;
     @OneToMany(mappedBy = "aluno")
     private List<ExecucaoTreino> execucoes = new ArrayList<>();
+    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Matricula> matriculas = new ArrayList<>();
 }

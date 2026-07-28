@@ -13,6 +13,7 @@ import com.academia.academia_api.infra.exceptions.ForbiddenException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
+import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -31,12 +32,14 @@ public class AlunoService {
     private final AlunoRepository alunoRepository;
     private final AlunoMapper alunoMapper;
     private final UsuarioRepository usuarioRepository;
+    private final MatriculaRepositoy matriculaRepositoy;
     private final PasswordEncoder passwordEncoder;
 
-    public AlunoService(AlunoRepository alunoRepository, AlunoMapper alunoMapper, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public AlunoService(AlunoRepository alunoRepository, AlunoMapper alunoMapper, UsuarioRepository usuarioRepository, MatriculaRepositoy matriculaRepositoy, PasswordEncoder passwordEncoder) {
         this.alunoRepository = alunoRepository;
         this.alunoMapper = alunoMapper;
         this.usuarioRepository = usuarioRepository;
+        this.matriculaRepositoy = matriculaRepositoy;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -121,6 +124,12 @@ public class AlunoService {
 
         Aluno alunoDeletado = alunoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado para exclusão."));
+
+        boolean temMatriculaAtiva = matriculaRepositoy.existsByAlunoIdAndAtivaTrue(id);
+
+        if (temMatriculaAtiva) {
+            throw new BadRequestException("Não é possível excluir um aluno que possui uma matrícula ativa.");
+        }
 
         alunoRepository.delete(alunoDeletado);
         return alunoMapper.toResponseDTO(alunoDeletado);

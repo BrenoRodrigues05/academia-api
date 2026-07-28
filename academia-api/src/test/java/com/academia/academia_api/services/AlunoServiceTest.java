@@ -13,6 +13,7 @@ import com.academia.academia_api.infra.exceptions.ForbiddenException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
+import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +43,9 @@ class AlunoServiceTest {
 
     @Mock
     private AlunoRepository alunoRepository;
+
+    @Mock
+    private MatriculaRepositoy matriculaRepository;
 
     @Mock
     private AlunoMapper alunoMapper;
@@ -331,21 +335,52 @@ class AlunoServiceTest {
     class DeleteAlunoTests {
 
         @Test
-        @DisplayName("Deve carregar o aluno para exclusão com sucesso")
+        @DisplayName("Deve deletar o aluno com sucesso quando não possuir matrícula ativa")
         void deveRetornarAlunoDeletado() {
+
             when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
+            when(matriculaRepository.existsByAlunoIdAndAtivaTrue(1L)).thenReturn(false);
             when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
 
             AlunoResponseDTO resultado = alunoService.deleteAluno(1L);
 
             assertNotNull(resultado);
+            assertEquals("João Paulo", resultado.getNome());
+
             verify(alunoRepository, times(1)).findById(1L);
+            verify(matriculaRepository, times(1)).existsByAlunoIdAndAtivaTrue(1L);
+            verify(alunoRepository, times(1)).delete(aluno);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o aluno possuir matrícula ativa")
+        void deveLancarErroSePossuirMatriculaAtiva() {
+
+            when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
+            when(matriculaRepository.existsByAlunoIdAndAtivaTrue(1L)).thenReturn(true);
+
+            BadRequestException excecao = assertThrows(
+                    BadRequestException.class,
+                    () -> alunoService.deleteAluno(1L)
+            );
+            verify(alunoRepository, never()).delete(any());
+            verify(matriculaRepository, times(1)).existsByAlunoIdAndAtivaTrue(1L);
         }
 
         @Test
         @DisplayName("Deve lançar BadRequestException se o ID de exclusão for nulo")
         void deveLancarErroSeIdDelecaoForNulo() {
             assertThrows(BadRequestException.class, () -> alunoService.deleteAluno(null));
+            verify(alunoRepository, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se o aluno não for encontrado")
+        void deveLancarErroSeAlunoNaoEncontrado() {
+            when(alunoRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> alunoService.deleteAluno(99L));
+            verify(alunoRepository, never()).delete(any());
         }
     }
 
