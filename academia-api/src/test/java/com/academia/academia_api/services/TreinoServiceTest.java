@@ -76,6 +76,7 @@ class TreinoServiceTest {
 
         personalExemplo = new Personal();
         personalExemplo.setId(2L);
+        personalExemplo.setAtivo(true);
         personalExemplo.setUsuario(usuarioLogado);
 
         treinoExemplo = new Treino();
@@ -437,6 +438,87 @@ class TreinoServiceTest {
         when(treinoRepository.findById(5L)).thenReturn(Optional.of(treinoExemplo));
 
         assertThrows(BadRequestException.class, () -> treinoService.alterarStatus(5L, true));
+    }
+
+    @Nested
+    @DisplayName("Cenários de Reatribuição de Personal (alterarPersonalDoTreino)")
+    class AlterarPersonalDoTreinoTests {
+
+        @Test
+        @DisplayName("Deve reatribuir o personal com sucesso quando executado por um ADMIN")
+        void deveReatribuirPersonalComSucessoPorAdmin() {
+            mockUsuarioLogado(usuarioLogado);
+
+            Personal novoPersonal = new Personal();
+            novoPersonal.setId(20L);
+            novoPersonal.setAtivo(true);
+
+            when(treinoRepository.findById(5L)).thenReturn(Optional.of(treinoExemplo));
+            when(personalRepository.findById(20L)).thenReturn(Optional.of(novoPersonal));
+            when(treinoRepository.save(treinoExemplo)).thenReturn(treinoExemplo);
+            when(treinoMapper.toResponseDTO(treinoExemplo)).thenReturn(new TreinoResponseDTO());
+
+            TreinoResponseDTO resultado = treinoService.alterarPersonalDoTreino(5L, 20L);
+
+            assertNotNull(resultado);
+            assertEquals(novoPersonal, treinoExemplo.getPersonal());
+            verify(treinoRepository, times(1)).save(treinoExemplo);
+        }
+
+        @Test
+        @DisplayName("Deve lançar ForbiddenException se um PERSONAL tentar reatribuir o treino")
+        void deveLancarForbiddenSeNaoForAdmin() {
+            Usuarios usuarioPersonal = new Usuarios();
+            usuarioPersonal.setId(22L);
+            usuarioPersonal.setRole(UserRole.PERSONAL);
+            mockUsuarioLogado(usuarioPersonal);
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> treinoService.alterarPersonalDoTreino(5L, 20L));
+
+            assertEquals("Apenas administradores podem reatribuir a responsabilidade de um treino.", exception.getMessage());
+            verify(treinoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o treino já pertencer ao personal informado")
+        void deveValidarSeTreinoJaPertenceAoPersonal() {
+            mockUsuarioLogado(usuarioLogado);
+
+            when(treinoRepository.findById(5L)).thenReturn(Optional.of(treinoExemplo));
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> treinoService.alterarPersonalDoTreino(5L, 2L));
+
+            assertEquals("Este treino já pertence ao personal informado.", exception.getMessage());
+            verify(treinoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o novo personal estiver inativo")
+        void deveValidarSeNovoPersonalEstaInativo() {
+            mockUsuarioLogado(usuarioLogado);
+
+            Personal novoPersonalInativo = new Personal();
+            novoPersonalInativo.setId(20L);
+            novoPersonalInativo.setAtivo(false);
+
+            when(treinoRepository.findById(5L)).thenReturn(Optional.of(treinoExemplo));
+            when(personalRepository.findById(20L)).thenReturn(Optional.of(novoPersonalInativo));
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> treinoService.alterarPersonalDoTreino(5L, 20L));
+
+            assertEquals("Não é possível atribuir um treino a um personal inativo.", exception.getMessage());
+            verify(treinoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se os IDs forem nulos ou menores/iguais a zero")
+        void deveValidarIdsInvalidos() {
+            assertThrows(BadRequestException.class, () -> treinoService.alterarPersonalDoTreino(0L, 20L));
+            assertThrows(BadRequestException.class, () -> treinoService.alterarPersonalDoTreino(5L, null));
+        }
     }
 
     @Test

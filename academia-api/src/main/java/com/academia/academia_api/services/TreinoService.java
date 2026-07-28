@@ -324,6 +324,41 @@ public class TreinoService {
     }
 
     @Transactional
+    public TreinoResponseDTO alterarPersonalDoTreino(Long treinoId, Long novoPersonalId) {
+
+        if (treinoId == null || treinoId <= 0) {
+            throw new BadRequestException("O ID do treino informado é inválido ou nulo.");
+        }
+        if (novoPersonalId == null || novoPersonalId <= 0) {
+            throw new BadRequestException("O ID do novo personal informado é inválido ou nulo.");
+        }
+
+        Usuarios usuarioLogado = getUsuarioLogado();
+        if (usuarioLogado.getRole() != UserRole.ADMIN && usuarioLogado.getRole() != UserRole.SUPER_ADMIN) {
+            throw new ForbiddenException("Apenas administradores podem reatribuir a responsabilidade de um treino.");
+        }
+
+        Treino treino = treinoRepository.findById(treinoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Treino não encontrado com o ID: " + treinoId));
+
+        if (treino.getPersonal() != null && treino.getPersonal().getId().equals(novoPersonalId)) {
+            throw new BadRequestException("Este treino já pertence ao personal informado.");
+        }
+
+        Personal novoPersonal = personalRepository.findById(novoPersonalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Novo personal não encontrado com o ID: " + novoPersonalId));
+
+        if (Boolean.FALSE.equals(novoPersonal.getAtivo())) {
+            throw new BadRequestException("Não é possível atribuir um treino a um personal inativo.");
+        }
+
+        treino.setPersonal(novoPersonal);
+        Treino treinoAtualizado = treinoRepository.save(treino);
+
+        return treinoMapper.toResponseDTO(treinoAtualizado);
+    }
+
+    @Transactional
     public TreinoResponseDTO deleteTreino(Long id) {
         if (id == null || id <= 0) {
             throw new BadRequestException("ID inválido ou nulo para exclusão.");

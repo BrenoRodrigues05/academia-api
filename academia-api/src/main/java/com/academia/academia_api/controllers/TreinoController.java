@@ -1,9 +1,6 @@
 package com.academia.academia_api.controllers;
 
-import com.academia.academia_api.DTOs.PageResponseDTO;
-import com.academia.academia_api.DTOs.TreinoCreateDTO;
-import com.academia.academia_api.DTOs.TreinoResponseDTO;
-import com.academia.academia_api.DTOs.TreinoUpdateDTO;
+import com.academia.academia_api.DTOs.*;
 import com.academia.academia_api.services.TreinoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -178,6 +175,15 @@ public class TreinoController {
         return ResponseEntity.ok(
                 treinoService.alterarStatus(id, ativo)
         );
+    }
+
+    @PatchMapping("/{id}/reatribuir-personal")
+    public ResponseEntity<TreinoResponseDTO> reatribuirPersonal(
+            @PathVariable Long id,
+            @RequestBody @Valid ReatribuirPersonalDTO dto) {
+
+        TreinoResponseDTO treinoAtualizado = treinoService.alterarPersonalDoTreino(id, dto.novoPersonalId());
+        return ResponseEntity.ok(treinoAtualizado);
     }
 
     @Operation(

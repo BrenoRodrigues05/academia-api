@@ -155,6 +155,7 @@ GET    /api/treinos/aluno/{alunoId}
 POST   /api/treinos
 PUT    /api/treinos/{id}
 PATCH  /api/treinos/{id}/status
+PATCH  /api/treinos/{id}/reatribuir-personal
 DELETE /api/treinos/{id}
 ```
 
