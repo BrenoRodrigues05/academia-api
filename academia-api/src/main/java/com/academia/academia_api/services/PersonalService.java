@@ -5,12 +5,14 @@ import com.academia.academia_api.DTOs.PersonalCreateDTO;
 import com.academia.academia_api.DTOs.PersonalResponseDTO;
 import com.academia.academia_api.DTOs.PersonalUpdateDTO;
 import com.academia.academia_api.entity.Personal;
+import com.academia.academia_api.entity.Treino;
 import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.UserRole;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.PersonalMapper;
 import com.academia.academia_api.repository.PersonalRepository;
+import com.academia.academia_api.repository.TreinoRepository;
 import com.academia.academia_api.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -29,12 +31,14 @@ public class PersonalService {
     private final PersonalMapper personalMapper;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TreinoRepository treinoRepository;
 
-    public PersonalService(PersonalRepository personalRepository, PersonalMapper personalMapper, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public PersonalService(PersonalRepository personalRepository, PersonalMapper personalMapper, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, TreinoRepository treinoRepository) {
         this.personalRepository = personalRepository;
         this.personalMapper = personalMapper;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.treinoRepository = treinoRepository;
     }
 
     public PageResponseDTO<PersonalResponseDTO> findAll(int page, int size) {
@@ -179,6 +183,7 @@ public class PersonalService {
         return personalMapper.toResponseDTO(buscaPersonal);
     }
 
+    @Transactional
     public PersonalResponseDTO deletePersonal(Long id) {
         if (id == null || id <= 0) {
             throw new BadRequestException("ID inválido ou nulo para exclusão.");
@@ -189,6 +194,11 @@ public class PersonalService {
 
         if (Boolean.TRUE.equals(personalDeletado.getAtivo())) {
             throw new BadRequestException("O personal está ativo. Para deletar, primeiro altere o status para inativo.");
+        }
+
+        List<Treino> treinos = treinoRepository.findByPersonalId(id);
+        if (!treinos.isEmpty()) {
+            throw new BadRequestException("Não é possível excluir: existem treinos associados a este personal. Remova ou reatribua os treinos primeiro.");
         }
 
         personalRepository.delete(personalDeletado);

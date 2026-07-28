@@ -9,6 +9,7 @@ import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.mappings.PersonalMapper;
 import com.academia.academia_api.repository.PersonalRepository;
+import com.academia.academia_api.repository.TreinoRepository;
 import com.academia.academia_api.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +44,9 @@ class PersonalServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private TreinoRepository treinoRepository;
 
     @InjectMocks
     private PersonalService personalService;
@@ -307,22 +311,26 @@ class PersonalServiceTest {
     class DeleteTests {
 
         @Test
-        @DisplayName("Deve deletar personal com sucesso se ele estiver inativo")
-        void deveDeletarSeInativo() {
+        @DisplayName("Deve deletar personal com sucesso se ele estiver inativo e não possuir treinos")
+        void deveDeletarSeInativoESemTreinos() {
+
             personal.setAtivo(false);
 
             when(personalRepository.findById(1L)).thenReturn(Optional.of(personal));
+            when(treinoRepository.findByPersonalId(1L)).thenReturn(List.of());
             when(personalMapper.toResponseDTO(personal)).thenReturn(responseDTO);
 
             PersonalResponseDTO resultado = personalService.deletePersonal(1L);
 
             assertNotNull(resultado);
             verify(personalRepository, times(1)).delete(personal);
+            verify(treinoRepository, times(1)).findByPersonalId(1L);
         }
 
         @Test
         @DisplayName("Deve lançar BadRequestException se tentar deletar um personal ativo")
         void deveImpedirDelecaoDePersonalAtivo() {
+
             personal.setAtivo(true);
 
             when(personalRepository.findById(1L)).thenReturn(Optional.of(personal));
@@ -331,6 +339,23 @@ class PersonalServiceTest {
                     () -> personalService.deletePersonal(1L));
 
             assertTrue(exception.getMessage().contains("O personal está ativo"));
+            verify(treinoRepository, never()).findByPersonalId(any());
+            verify(personalRepository, never()).delete(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o personal inativo possuir treinos vinculados")
+        void deveImpedirDelecaoSePossuirTreinos() {
+
+            personal.setAtivo(false);
+
+            when(personalRepository.findById(1L)).thenReturn(Optional.of(personal));
+            when(treinoRepository.findByPersonalId(1L)).thenReturn(List.of(new com.academia.academia_api.entity.Treino()));
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> personalService.deletePersonal(1L));
+
+            assertTrue(exception.getMessage().contains("existem treinos associados"));
             verify(personalRepository, never()).delete(any());
         }
     }
