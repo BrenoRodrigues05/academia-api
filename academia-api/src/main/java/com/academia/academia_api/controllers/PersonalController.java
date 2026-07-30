@@ -50,6 +50,18 @@ public class PersonalController {
     }
 
     @Operation(
+            summary = "Buscar perfil do personal autenticado.",
+            description = "Retorna os dados do personal correspondente ao usuário autenticado."
+    )
+    @GetMapping("/me")
+    public ResponseEntity<PersonalResponseDTO> meuPerfil() {
+
+        return ResponseEntity.ok(
+                personalService.getMeuPerfil()
+        );
+    }
+
+    @Operation(
             summary = "Buscar personal por ID."
     )
     @GetMapping("/{id}")

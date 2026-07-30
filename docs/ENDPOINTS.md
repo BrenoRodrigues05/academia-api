@@ -96,6 +96,7 @@ DELETE /api/alunos/{id}
 ```http
 GET    /api/personais
 GET    /api/personais/contador
+GET    /api/personais/me
 GET    /api/personais/{id}
 GET    /api/personais/busca-email
 GET    /api/personais/busca-cref

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,20 @@ public class PersonalService {
 
     public Long countPersonal() {
         return personalRepository.count();
+    }
+
+    public PersonalResponseDTO getMeuPerfil(){
+
+        Usuarios usuario = getUsuarioLogado();
+
+        Personal personal = personalRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Perfil do Personal não encontrado para o usuário logado."
+                        )
+                );
+
+        return personalMapper.toResponseDTO(personal);
     }
 
     public PersonalResponseDTO findById(Long id) {
@@ -203,5 +218,14 @@ public class PersonalService {
 
         personalRepository.delete(personalDeletado);
         return personalMapper.toResponseDTO(personalDeletado);
+    }
+
+    private Usuarios getUsuarioLogado() {
+
+        return (Usuarios)
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal();
     }
 }
