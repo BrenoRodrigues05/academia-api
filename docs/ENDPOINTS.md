@@ -77,6 +77,7 @@ Cria:
 ```http
 GET    /api/alunos
 GET    /api/alunos/contador
+GET    /api/alunos/me
 GET    /api/alunos/{id}
 GET    /api/alunos/busca-nome
 GET    /api/alunos/busca-email

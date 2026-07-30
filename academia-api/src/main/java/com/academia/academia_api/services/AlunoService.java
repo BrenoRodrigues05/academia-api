@@ -80,6 +80,20 @@ public class AlunoService {
         return alunoMapper.toResponseDTO(aluno);
     }
 
+    public AlunoResponseDTO getMeuPerfil() {
+
+        Usuarios usuario = getUsuarioLogado();
+
+        Aluno aluno = alunoRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Perfil de aluno não encontrado para o usuário logado."
+                        )
+                );
+
+        return alunoMapper.toResponseDTO(aluno);
+    }
+
     @Transactional
     public AlunoResponseDTO addAluno(AlunoCreateDTO createDTO) {
 
@@ -241,7 +255,7 @@ public class AlunoService {
         }
         if (usuario.getRole() == UserRole.ALUNO) {
 
-            if (aluno.getId().equals(usuario.getId())) {
+            if (aluno.getUsuario().getId().equals(usuario.getId())) {
                 return;
             }
         }

@@ -15,6 +15,7 @@ import com.academia.academia_api.mappings.AlunoMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.UsuarioRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,6 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +47,7 @@ class AlunoServiceTest {
     private AlunoRepository alunoRepository;
 
     @Mock
-    private MatriculaRepositoy matriculaRepository;
+    private MatriculaRepositoy matriculaRepositoy;
 
     @Mock
     private AlunoMapper alunoMapper;
@@ -80,6 +82,11 @@ class AlunoServiceTest {
         responseDTO.setId(1L);
         responseDTO.setNome("João Paulo");
         responseDTO.setEmail("joao@email.com");
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     private void mockUsuarioLogado(Long id, UserRole role) {
@@ -126,7 +133,6 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve retornar o total de alunos cadastrados com sucesso")
         void deveRetornarTotalDeAlunos() {
-
             long totalEsperado = 42L;
             when(alunoRepository.count()).thenReturn(totalEsperado);
 
@@ -139,7 +145,6 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve retornar zero quando não houver alunos cadastrados")
         void deveRetornarZeroQuandoNaoHouverAlunos() {
-
             when(alunoRepository.count()).thenReturn(0L);
 
             long resultado = alunoService.countAluno();
@@ -182,6 +187,36 @@ class AlunoServiceTest {
     }
 
     @Nested
+    @DisplayName("Cenários de Meu Perfil (getMeuPerfil)")
+    class GetMeuPerfilTests {
+
+        @Test
+        @DisplayName("Deve retornar o perfil do aluno logado com sucesso")
+        void deveRetornarPerfilDoAlunoLogado() {
+            mockUsuarioLogado(10L, UserRole.ALUNO);
+
+            when(alunoRepository.findByUsuarioId(10L)).thenReturn(Optional.of(aluno));
+            when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
+
+            AlunoResponseDTO resultado = alunoService.getMeuPerfil();
+
+            assertNotNull(resultado);
+            assertEquals("João Paulo", resultado.getNome());
+            verify(alunoRepository).findByUsuarioId(10L);
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se não houver perfil cadastrado para o usuário logado")
+        void deveLancarErroQuandoPerfilNaoEncontrado() {
+            mockUsuarioLogado(99L, UserRole.ALUNO);
+
+            when(alunoRepository.findByUsuarioId(99L)).thenReturn(Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> alunoService.getMeuPerfil());
+        }
+    }
+
+    @Nested
     @DisplayName("Cenários de Cadastro (addAluno)")
     class AddAlunoTests {
 
@@ -195,7 +230,7 @@ class AlunoServiceTest {
             usuarioSalvo.setId(10L);
             usuarioSalvo.setLogin("joao@email.com");
 
-            when(passwordEncoder.encode(anyString())).thenReturn("senhaCriptografadaTexto");
+            when(passwordEncoder.encode("Aluno@123")).thenReturn("senhaCriptografadaTexto");
             when(usuarioRepository.save(any(Usuarios.class))).thenReturn(usuarioSalvo);
 
             when(alunoMapper.toEntity(createDTO)).thenReturn(aluno);
@@ -243,7 +278,8 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve permitir atualização se o usuário logado for o próprio ALUNO dono do perfil")
         void deveAtualizarSendoOProprioAluno() {
-            mockUsuarioLogado(1L, UserRole.ALUNO);
+
+            mockUsuarioLogado(10L, UserRole.ALUNO);
 
             when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
             when(alunoRepository.save(aluno)).thenReturn(aluno);
@@ -252,7 +288,7 @@ class AlunoServiceTest {
             AlunoResponseDTO resultado = alunoService.updateAluno(1L, updateDTO);
 
             assertNotNull(resultado);
-            assertDoesNotThrow(() -> {});
+            verify(alunoRepository).save(aluno);
         }
 
         @Test
@@ -273,21 +309,18 @@ class AlunoServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("Cenários de Alternância de Status (alternarStatusAluno)")
     class AlternarStatusAlunoTests {
 
         @BeforeEach
         void setupStatus() {
-
             aluno.getUsuario().setAtivo(true);
         }
 
         @Test
         @DisplayName("Deve alternar o status do aluno com sucesso")
         void deveAlternarStatusComSucesso() {
-
             when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
             when(alunoRepository.save(aluno)).thenReturn(aluno);
             when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
@@ -337,9 +370,8 @@ class AlunoServiceTest {
         @Test
         @DisplayName("Deve deletar o aluno com sucesso quando não possuir matrícula ativa")
         void deveRetornarAlunoDeletado() {
-
             when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
-            when(matriculaRepository.existsByAlunoIdAndAtivaTrue(1L)).thenReturn(false);
+            when(matriculaRepositoy.existsByAlunoIdAndAtivaTrue(1L)).thenReturn(false);
             when(alunoMapper.toResponseDTO(aluno)).thenReturn(responseDTO);
 
             AlunoResponseDTO resultado = alunoService.deleteAluno(1L);
@@ -348,23 +380,22 @@ class AlunoServiceTest {
             assertEquals("João Paulo", resultado.getNome());
 
             verify(alunoRepository, times(1)).findById(1L);
-            verify(matriculaRepository, times(1)).existsByAlunoIdAndAtivaTrue(1L);
+            verify(matriculaRepositoy, times(1)).existsByAlunoIdAndAtivaTrue(1L);
             verify(alunoRepository, times(1)).delete(aluno);
         }
 
         @Test
         @DisplayName("Deve lançar BadRequestException se o aluno possuir matrícula ativa")
         void deveLancarErroSePossuirMatriculaAtiva() {
-
             when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
-            when(matriculaRepository.existsByAlunoIdAndAtivaTrue(1L)).thenReturn(true);
+            when(matriculaRepositoy.existsByAlunoIdAndAtivaTrue(1L)).thenReturn(true);
 
-            BadRequestException excecao = assertThrows(
+            assertThrows(
                     BadRequestException.class,
                     () -> alunoService.deleteAluno(1L)
             );
             verify(alunoRepository, never()).delete(any());
-            verify(matriculaRepository, times(1)).existsByAlunoIdAndAtivaTrue(1L);
+            verify(matriculaRepositoy, times(1)).existsByAlunoIdAndAtivaTrue(1L);
         }
 
         @Test
@@ -401,6 +432,14 @@ class AlunoServiceTest {
         }
 
         @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se a busca por nome retornar vazia")
+        void deveLancarErroSeNomeNaoEncontrado() {
+            when(alunoRepository.findByNomeContainingIgnoreCase("Desconhecido")).thenReturn(Collections.emptyList());
+
+            assertThrows(ResourceNotFoundException.class, () -> alunoService.findByNome("Desconhecido"));
+        }
+
+        @Test
         @DisplayName("Deve lançar BadRequestException se o nome buscado for nulo ou vazio")
         void deveLancarErroSeNomeInvalido() {
             assertThrows(BadRequestException.class, () -> alunoService.findByNome(""));
@@ -420,6 +459,14 @@ class AlunoServiceTest {
         }
 
         @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se o e-mail não for encontrado")
+        void deveLancarErroSeEmailNaoEncontrado() {
+            when(alunoRepository.findByEmailContainingIgnoreCase("naoexiste@email.com")).thenReturn(Collections.emptyList());
+
+            assertThrows(ResourceNotFoundException.class, () -> alunoService.findByEmail("naoexiste@email.com"));
+        }
+
+        @Test
         @DisplayName("Deve buscar por sexo e retornar estrutura paginada")
         void deveBuscarPorSexoPaginado() {
             Pageable pageable = PageRequest.of(0, 5);
@@ -432,6 +479,12 @@ class AlunoServiceTest {
 
             assertNotNull(resultado);
             assertEquals(1, resultado.content().size());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se sexo for nulo")
+        void deveLancarErroSeSexoForNulo() {
+            assertThrows(BadRequestException.class, () -> alunoService.findBySexo(null, 0, 5));
         }
 
         @Test

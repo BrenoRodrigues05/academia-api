@@ -56,6 +56,18 @@ public class AlunoController {
     }
 
     @Operation(
+            summary = "Buscar perfil do aluno autenticado.",
+            description = "Retorna os dados do aluno correspondente ao usuário autenticado."
+    )
+    @GetMapping("/me")
+    public ResponseEntity<AlunoResponseDTO> meuPerfil() {
+
+        return ResponseEntity.ok(
+                alunoService.getMeuPerfil()
+        );
+    }
+
+    @Operation(
             summary = "Buscar aluno por ID."
     )
     @GetMapping("/{id}")

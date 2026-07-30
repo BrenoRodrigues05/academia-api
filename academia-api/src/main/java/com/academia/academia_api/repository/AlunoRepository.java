@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
@@ -19,4 +20,5 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     List<Aluno> findByNomeContainingIgnoreCase(String nome);
     Page<Aluno> findBySexo(SexoEnum sexo, Pageable pageable);
     List<Aluno> findByEmailContainingIgnoreCase(String email);
+    Optional<Aluno> findByUsuarioId(Long usuarioId);
 }
