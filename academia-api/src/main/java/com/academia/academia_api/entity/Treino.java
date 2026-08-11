@@ -38,7 +38,7 @@ public class Treino extends BaseEntity{
     @JoinColumn(name = "personal_id")
     private Personal personal;
 
-    @OneToOne
-    @JoinColumn(name = "aluno_id", unique = true)
+    @ManyToOne
+    @JoinColumn(name = "aluno_id")
     private Aluno aluno;
 }
