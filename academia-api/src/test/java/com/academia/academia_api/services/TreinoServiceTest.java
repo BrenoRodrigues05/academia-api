@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,6 +74,7 @@ class TreinoServiceTest {
 
         alunoExemplo = new Aluno();
         alunoExemplo.setId(1L);
+        alunoExemplo.setUsuario(usuarioLogado);
 
         personalExemplo = new Personal();
         personalExemplo.setId(2L);
@@ -120,7 +122,6 @@ class TreinoServiceTest {
         @Test
         @DisplayName("Deve retornar o total de treinos cadastrados com sucesso")
         void deveRetornarTotalDeTreinos() {
-
             long totalEsperado = 85L;
             when(treinoRepository.count()).thenReturn(totalEsperado);
             long resultado = treinoService.countTreino();
@@ -132,7 +133,6 @@ class TreinoServiceTest {
         @Test
         @DisplayName("Deve retornar zero quando não houver treinos cadastrados")
         void deveRetornarZeroQuandoNaoHouverTreinos() {
-
             when(treinoRepository.count()).thenReturn(0L);
 
             long resultado = treinoService.countTreino();
@@ -173,10 +173,10 @@ class TreinoServiceTest {
     @Test
     @DisplayName("Deve lançar ForbiddenException quando o Aluno tentar ver treino de outra pessoa")
     void findById_DeveLancarForbiddenExceptionQuandoAlunoNaoForDono() {
-        Usuarios usuarioAlunoOutro = new Usuarios();
-        usuarioAlunoOutro.setId(50L);
-        usuarioAlunoOutro.setRole(UserRole.ALUNO);
-        mockUsuarioLogado(usuarioAlunoOutro);
+        Usuarios usuarioOutroAluno = new Usuarios();
+        usuarioOutroAluno.setId(50L);
+        usuarioOutroAluno.setRole(UserRole.ALUNO);
+        mockUsuarioLogado(usuarioOutroAluno);
 
         when(treinoRepository.findById(5L)).thenReturn(Optional.of(treinoExemplo));
 
@@ -221,6 +221,14 @@ class TreinoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar ResourceNotFoundException quando nenhum treino for encontrado pelo termo de busca")
+    void findByNome_DeveLancarResourceNotFoundException() {
+        when(treinoRepository.findByNomeContainingIgnoreCase("Desconhecido")).thenReturn(Collections.emptyList());
+
+        assertThrows(ResourceNotFoundException.class, () -> treinoService.findByNome("Desconhecido"));
+    }
+
+    @Test
     @DisplayName("Deve lançar BadRequestException quando o termo de busca por nome for vazio ou nulo")
     void findByNome_DeveLancarBadRequestException() {
         assertThrows(BadRequestException.class, () -> treinoService.findByNome(""));
@@ -259,7 +267,7 @@ class TreinoServiceTest {
     @DisplayName("Deve buscar meu histórico com sucesso")
     void getMeuHistorico_DeveRetornarListaSucesso() {
         mockUsuarioLogado(usuarioLogado);
-        when(treinoRepository.findByAlunoUsuarioIdOrderByDataInicioDesc(usuarioLogado.getId()))
+        when(treinoRepository.findByAlunoUsuarioIdAndAtivoFalseOrderByDataInicioDesc(usuarioLogado.getId()))
                 .thenReturn(List.of(treinoExemplo));
         when(treinoMapper.toResponseDTO(treinoExemplo)).thenReturn(new TreinoResponseDTO());
 
@@ -281,10 +289,18 @@ class TreinoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar ResourceNotFoundException quando o histórico do aluno estiver vazio")
+    void historicoAluno_DeveLancarResourceNotFoundExceptionQuandoVazio() {
+        when(treinoRepository.findByAlunoIdOrderByDataInicioDesc(1L)).thenReturn(Collections.emptyList());
+
+        assertThrows(ResourceNotFoundException.class, () -> treinoService.historicoAluno(1L));
+    }
+
+    @Test
     @DisplayName("Deve retornar meu treino ativo com sucesso")
     void getMeutreino_DeveRetornarTreinoAtivo() {
         mockUsuarioLogado(usuarioLogado);
-        when(treinoRepository.findByAlunoIdAndAtivoTrue(usuarioLogado.getId())).thenReturn(Optional.of(treinoExemplo));
+        when(treinoRepository.findByAlunoUsuarioIdAndAtivoTrue(usuarioLogado.getId())).thenReturn(Optional.of(treinoExemplo));
         when(treinoMapper.toResponseDTO(treinoExemplo)).thenReturn(new TreinoResponseDTO());
 
         TreinoResponseDTO resultado = treinoService.getMeutreino();
@@ -340,7 +356,9 @@ class TreinoServiceTest {
     @Test
     @DisplayName("Deve lançar BadRequestException se o aluno selecionado já possuir treino ativo")
     void addTreino_DeveLancarBadRequestExceptionSeAlunoJaPossuiTreinoAtivo() {
+        usuarioLogado.setRole(UserRole.PERSONAL);
         mockUsuarioLogado(usuarioLogado);
+
         TreinoCreateDTO dto = new TreinoCreateDTO();
         dto.setAlunoId(1L);
 

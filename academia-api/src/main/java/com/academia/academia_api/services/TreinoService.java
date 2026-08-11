@@ -136,7 +136,7 @@ public class TreinoService {
         Usuarios usuario = getUsuarioLogado();
 
         return treinoRepository
-                .findByAlunoUsuarioIdOrderByDataInicioDesc(usuario.getId())
+                .findByAlunoUsuarioIdAndAtivoFalseOrderByDataInicioDesc(usuario.getId())
                 .stream()
                 .map(treinoMapper::toResponseDTO)
                 .toList();
@@ -157,17 +157,16 @@ public class TreinoService {
                 .toList();
      }
 
-     public TreinoResponseDTO getMeutreino(){
+    public TreinoResponseDTO getMeutreino(){
+        Usuarios usuario = getUsuarioLogado();
 
-         Usuarios usuario = getUsuarioLogado();
+        Treino treino = treinoRepository
+                .findByAlunoUsuarioIdAndAtivoTrue(usuario.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Nenhum treino ativo encontrado."));
 
-         Treino treino = treinoRepository
-                 .findByAlunoIdAndAtivoTrue(usuario.getId())
-                 .orElseThrow(() ->
-                         new ResourceNotFoundException("Nenhum treino ativo encontrado."));
-
-         return treinoMapper.toResponseDTO(treino);
-     }
+        return treinoMapper.toResponseDTO(treino);
+    }
 
     @Transactional
     public TreinoResponseDTO addTreino(@NonNull TreinoCreateDTO dto) {
@@ -205,6 +204,10 @@ public class TreinoService {
         treino.setAluno(aluno);
         treino.setPersonal(personal);
         treino.setAtivo(true);
+
+        if (treino.getDataInicio() == null) {
+            treino.setDataInicio(LocalDate.now());
+        }
 
         Treino treinoSalvo = treinoRepository.save(treino);
 
