@@ -115,7 +115,7 @@ DELETE /api/personais/{id}
 
 ```http
 GET    /api/planos
-Get    /api/planos/contador
+GET    /api/planos/contador
 GET    /api/planos/{id}
 GET    /api/planos/busca-nome
 GET    /api/planos/busca-valor
@@ -132,6 +132,7 @@ DELETE /api/planos/{id}
 
 ```http
 GET    /api/matriculas
+GET    /api/matriculas/me
 GET    /api/matriculas/{id}
 POST   /api/matriculas
 PUT    /api/{idMatricula}/plano/{idPlano}

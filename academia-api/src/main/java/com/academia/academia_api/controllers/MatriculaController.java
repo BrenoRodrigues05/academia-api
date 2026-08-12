@@ -2,6 +2,7 @@ package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.MatriculaCreateDTO;
 import com.academia.academia_api.DTOs.MatriculaResponseDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
+import com.academia.academia_api.DTOs.PlanoResponseDTO;
 import com.academia.academia_api.services.MatriculaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +41,18 @@ public class MatriculaController {
    ) {
         return ResponseEntity.ok(matriculaService.listarMatriculas(page, size));
    }
+
+    @Operation(
+            summary = "Busca plano do aluno logado."
+    )
+    @GetMapping("/me")
+    public ResponseEntity<MatriculaResponseDTO> meuPlano() {
+
+        return ResponseEntity.ok(
+                matriculaService.getMeuPlano()
+        );
+
+    }
 
     @Operation(
             summary = "Buscar Matriculas por Id."

@@ -6,6 +6,7 @@ import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Matricula;
 import com.academia.academia_api.entity.Plano;
+import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.MatriculaMapper;
@@ -15,6 +16,7 @@ import com.academia.academia_api.repository.PlanoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,6 +46,16 @@ public class MatriculaService {
                 matriculas.getTotalElements(),
                 matriculas.getTotalPages()
         );
+    }
+
+    public MatriculaResponseDTO getMeuPlano(){
+        Usuarios usuarios = getUsuarioLogado();
+
+        Matricula matricula = matriculaRepositoy.findByAlunoUsuarioIdAndAtivaTrue(usuarios.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Nenhum plano encontrado atrelado ao aluno."));
+
+        return matriculaMapper.toResponseDTO(matricula);
     }
 
     public MatriculaResponseDTO findById(Long idMatricula) {
@@ -116,5 +128,12 @@ public class MatriculaService {
         Matricula matriculaAtualizada = matriculaRepositoy.save(buscaMatricula);
 
         return matriculaMapper.toResponseDTO(matriculaAtualizada);
+    }
+
+    private Usuarios getUsuarioLogado() {
+        return (Usuarios) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
     }
 }

@@ -6,12 +6,14 @@ import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Matricula;
 import com.academia.academia_api.entity.Plano;
+import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.MatriculaMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PlanoRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,11 +21,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,16 +57,31 @@ class MatriculaServiceTest {
     @InjectMocks
     private MatriculaService matriculaService;
 
+    private MockedStatic<SecurityContextHolder> mockedSecurityContextHolder;
+    private SecurityContext securityContext;
+    private Authentication authentication;
+
     private Matricula matricula;
     private MatriculaResponseDTO responseDTO;
     private Aluno aluno;
     private Plano plano;
+    private Usuarios usuarioLogado;
 
     @BeforeEach
     void setUp() {
+        mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class);
+        securityContext = mock(SecurityContext.class);
+        authentication = mock(Authentication.class);
+        mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        usuarioLogado = new Usuarios();
+        usuarioLogado.setId(100L);
+
         aluno = new Aluno();
         aluno.setId(1L);
         aluno.setNome("Breno Rodrigues");
+        aluno.setUsuario(usuarioLogado);
 
         plano = new Plano();
         plano.setId(5L);
@@ -74,6 +95,15 @@ class MatriculaServiceTest {
         responseDTO = new MatriculaResponseDTO();
         responseDTO.setMatricula(10L);
         responseDTO.setAtiva(true);
+    }
+
+    @AfterEach
+    void tearDown() {
+        mockedSecurityContextHolder.close();
+    }
+
+    private void mockUsuarioLogado(Usuarios usuario) {
+        lenient().when(authentication.getPrincipal()).thenReturn(usuario);
     }
 
     @Nested
@@ -94,6 +124,41 @@ class MatriculaServiceTest {
             assertNotNull(resultado);
             assertEquals(1, resultado.content().size());
             verify(matriculaRepositoy, times(1)).findAll(pageable);
+        }
+    }
+
+    @Nested
+    @DisplayName("Cenários de Busca do Meu Plano (getMeuPlano)")
+    class GetMeuPlanoTests {
+
+        @Test
+        @DisplayName("Deve retornar a matrícula ativa do aluno logado com sucesso")
+        void deveRetornarMatriculaAtivaDoUsuarioLogado() {
+            mockUsuarioLogado(usuarioLogado);
+
+            when(matriculaRepositoy.findByAlunoUsuarioIdAndAtivaTrue(usuarioLogado.getId()))
+                    .thenReturn(Optional.of(matricula));
+            when(matriculaMapper.toResponseDTO(matricula)).thenReturn(responseDTO);
+
+            MatriculaResponseDTO resultado = matriculaService.getMeuPlano();
+
+            assertNotNull(resultado);
+            assertEquals(10L, resultado.getMatricula());
+            verify(matriculaRepositoy, times(1)).findByAlunoUsuarioIdAndAtivaTrue(usuarioLogado.getId());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException quando o aluno logado não possuir plano ativo")
+        void deveLancarResourceNotFoundExceptionQuandoNaoEncontrarMatriculaAtiva() {
+            mockUsuarioLogado(usuarioLogado);
+
+            when(matriculaRepositoy.findByAlunoUsuarioIdAndAtivaTrue(usuarioLogado.getId()))
+                    .thenReturn(Optional.empty());
+
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                    () -> matriculaService.getMeuPlano());
+
+            assertEquals("Nenhum plano encontrado atrelado ao aluno.", exception.getMessage());
         }
     }
 
@@ -168,75 +233,6 @@ class MatriculaServiceTest {
             assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemPlano));
         }
 
-        @Nested
-        @DisplayName("Cenários de Edição de Plano (editarPlanoMatricula)")
-        class EditarPlanoMatriculaTests {
-
-            private Plano novoPlano;
-
-            @BeforeEach
-            void setUpEditarPlano() {
-                novoPlano = new Plano();
-                novoPlano.setId(8L);
-            }
-
-            @Test
-            @DisplayName("Deve editar o plano da matrícula com sucesso")
-            void deveEditarPlanoComSucesso() {
-
-                when(matriculaRepositoy.findById(10L)).thenReturn(Optional.of(matricula));
-                when(planoRepository.findById(8L)).thenReturn(Optional.of(novoPlano));
-                when(matriculaRepositoy.save(any(Matricula.class))).thenReturn(matricula);
-                when(matriculaMapper.toResponseDTO(matricula)).thenReturn(responseDTO);
-
-                MatriculaResponseDTO resultado = matriculaService.editarPlanoMatricula(10L, 8L);
-
-                assertNotNull(resultado);
-                assertEquals(8L, matricula.getPlano().getId());
-                verify(matriculaRepositoy, times(1)).findById(10L);
-                verify(planoRepository, times(1)).findById(8L);
-                verify(matriculaRepositoy, times(1)).save(matricula);
-                verify(matriculaMapper, times(1)).toResponseDTO(matricula);
-            }
-
-            @Test
-            @DisplayName("Deve lançar BadRequestException se o ID da matrícula for inválido")
-            void deveValidarIdMatriculaInvalido() {
-                assertThrows(BadRequestException.class, () -> matriculaService.editarPlanoMatricula(null, 8L));
-                assertThrows(BadRequestException.class, () -> matriculaService.editarPlanoMatricula(0L, 8L));
-
-                verify(matriculaRepositoy, never()).findById(any());
-            }
-
-            @Test
-            @DisplayName("Deve lançar ResourceNotFoundException se a matrícula não existir")
-            void deveLancarErroSeMatriculaNaoExiste() {
-                // Given
-                when(matriculaRepositoy.findById(99L)).thenReturn(Optional.empty());
-
-                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                        () -> matriculaService.editarPlanoMatricula(99L, 8L));
-
-                assertEquals("Matrícula não encontrada com o ID: 99", exception.getMessage());
-                verify(planoRepository, never()).findById(any());
-                verify(matriculaRepositoy, never()).save(any());
-            }
-
-            @Test
-            @DisplayName("Deve lançar ResourceNotFoundException se o plano informado não existir")
-            void deveLancarErroSePlanoNaoExiste() {
-                // Given
-                when(matriculaRepositoy.findById(10L)).thenReturn(Optional.of(matricula));
-                when(planoRepository.findById(99L)).thenReturn(Optional.empty());
-
-                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                        () -> matriculaService.editarPlanoMatricula(10L, 99L));
-
-                assertEquals("Plano não encontrado com o ID: 99", exception.getMessage());
-                verify(matriculaRepositoy, never()).save(any());
-            }
-        }
-
         @Test
         @DisplayName("Deve lançar BadRequestException se o aluno já possuir uma matrícula ativa")
         void deveBloquearMatriculaDuplicadaAtiva() {
@@ -256,13 +252,78 @@ class MatriculaServiceTest {
     }
 
     @Nested
+    @DisplayName("Cenários de Edição de Plano (editarPlanoMatricula)")
+    class EditarPlanoMatriculaTests {
+
+        private Plano novoPlano;
+
+        @BeforeEach
+        void setUpEditarPlano() {
+            novoPlano = new Plano();
+            novoPlano.setId(8L);
+        }
+
+        @Test
+        @DisplayName("Deve editar o plano da matrícula com sucesso")
+        void deveEditarPlanoComSucesso() {
+            when(matriculaRepositoy.findById(10L)).thenReturn(Optional.of(matricula));
+            when(planoRepository.findById(8L)).thenReturn(Optional.of(novoPlano));
+            when(matriculaRepositoy.save(any(Matricula.class))).thenReturn(matricula);
+            when(matriculaMapper.toResponseDTO(matricula)).thenReturn(responseDTO);
+
+            MatriculaResponseDTO resultado = matriculaService.editarPlanoMatricula(10L, 8L);
+
+            assertNotNull(resultado);
+            assertEquals(8L, matricula.getPlano().getId());
+            verify(matriculaRepositoy, times(1)).findById(10L);
+            verify(planoRepository, times(1)).findById(8L);
+            verify(matriculaRepositoy, times(1)).save(matricula);
+            verify(matriculaMapper, times(1)).toResponseDTO(matricula);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o ID da matrícula for inválido")
+        void deveValidarIdMatriculaInvalido() {
+            assertThrows(BadRequestException.class, () -> matriculaService.editarPlanoMatricula(null, 8L));
+            assertThrows(BadRequestException.class, () -> matriculaService.editarPlanoMatricula(0L, 8L));
+
+            verify(matriculaRepositoy, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se a matrícula não existir")
+        void deveLancarErroSeMatriculaNaoExiste() {
+            when(matriculaRepositoy.findById(99L)).thenReturn(Optional.empty());
+
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                    () -> matriculaService.editarPlanoMatricula(99L, 8L));
+
+            assertEquals("Matrícula não encontrada com o ID: 99", exception.getMessage());
+            verify(planoRepository, never()).findById(any());
+            verify(matriculaRepositoy, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se o plano informado não existir")
+        void deveLancarErroSePlanoNaoExiste() {
+            when(matriculaRepositoy.findById(10L)).thenReturn(Optional.of(matricula));
+            when(planoRepository.findById(99L)).thenReturn(Optional.empty());
+
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                    () -> matriculaService.editarPlanoMatricula(10L, 99L));
+
+            assertEquals("Plano não encontrado com o ID: 99", exception.getMessage());
+            verify(matriculaRepositoy, never()).save(any());
+        }
+    }
+
+    @Nested
     @DisplayName("Cenários de Alteração de Status (alterarStatus)")
     class AlterarStatusTests {
 
         @Test
         @DisplayName("Deve desativar matrícula ativa com sucesso")
         void deveDesativarMatriculaComSucesso() {
-
             when(matriculaRepositoy.findByMatricula(10L, false)).thenReturn(matricula);
 
             responseDTO.setAtiva(false);
@@ -314,7 +375,6 @@ class MatriculaServiceTest {
         @Test
         @DisplayName("Deve lançar ResourceNotFoundException se o status atual já for igual ao novo status")
         void deveLancarErroSeStatusJaForOProposto() {
-
             when(matriculaRepositoy.findByMatricula(10L, true)).thenReturn(matricula);
 
             assertThrows(ResourceNotFoundException.class, () -> matriculaService.alterarStatus(10L, true));
