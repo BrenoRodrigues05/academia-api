@@ -222,6 +222,10 @@ src/main/java/com/academia/academia_api
 │       ├── StatusPagamentoEnum
 │       └── TipoPlano
 │
+│
+├── gateway
+│   └── PixGateway
+│
 ├── infra
 |   ├── config
 |   |   ├── AuditorAwareImpl
