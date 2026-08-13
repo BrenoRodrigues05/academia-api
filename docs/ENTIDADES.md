@@ -181,3 +181,72 @@ Personal
 Treino
    │
    └─────► ItemTreino ◄───── Exercicio
+
+```
+
+---
+
+# 📂 Estrutura do Projeto
+
+```text
+src/main/java/com/academia/academia_api
+├── controllers
+│   ├── AuthController
+│   ├── AlunoController
+│   ├── PlanoController
+│   ├── MatriculaController
+│   ├── PersonalController
+│   ├── TreinoController
+│   ├── ExercicioController
+│   └── ItemTreinoController
+│
+├── DTOs
+│
+├── entity
+│   ├── BaseEntity         
+│   ├── Usuarios
+│   ├── Aluno
+│   ├── Pagamento
+│   ├── Plano
+│   ├── Matricula
+│   ├── Personal
+│   ├── Treino
+|   ├── ExecucaoTreino
+│   ├── Exercicio
+│   ├── ItemTreino
+│   └── enums
+│       ├── UserRole
+│       ├── SexoEnum
+│       ├── GrupoMuscular 
+│       ├── MetodoPagamentEnum
+│       ├── StatusPagamentoEnum
+│       └── TipoPlano
+│
+├── infra
+|   ├── config
+|   |   ├── AuditorAwareImpl
+|   |   ├── JpaAuditingConfig
+|   |   └──  OpenApiConfig
+|   | 
+│   ├── security
+|   |   ├── DataLoader
+│   │   ├── SecurityConfigurations
+│   │   ├── SecurityFilter
+│   │   └── TokenService
+│   │
+│   └── exceptions
+|        ├── BadRequestException
+|        ├── ErrorResponse
+|        ├── ForbiddenException
+|        ├── GlobalExceptionHandler
+|        ├── ResourceNotFoundException
+|        └── ValidationErrorResponse
+│
+├── mappings
+│
+├── repository
+│
+├── services
+│
+└── AcademiaApiApplication
+```
