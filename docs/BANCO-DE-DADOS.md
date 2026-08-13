@@ -28,4 +28,6 @@ V8__add_usuario_id_to_alunos.sql
 V9__add_usuario_id_to_personais.sql
 V10_add_auditoria.sql
 V11_add-datas-treino.sql
+V12_create_table_execucoes_treino.sql
+V13_create_table_pagamentos.sql
 ```
