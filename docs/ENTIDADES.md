@@ -77,6 +77,25 @@ Responsável pela autenticação e controle de acesso do sistema.
 | aluno | Aluno | Relacionamento N:1 |
 | plano | Plano | Relacionamento N:1 |
 | ativa | Boolean | Status do plano do aluno |
+| pagamentos | List&lt;Pagamento&gt; | Relacionamento OneToMany (Mapeado por `matricula`) |
+| *Herda de BaseEntity* | - | Campos de auditoria |
+
+---
+
+## 💰 Pagamento
+
+| Campo | Tipo | Observação |
+| :--- | :--- | :--- |
+| **id** | Long | Chave Primária |
+| **matricula** | Matricula | Relacionamento N:1 (Chave Estrangeira: `matricula_id`) |
+| **valor** | BigDecimal | Valor cobrado no pagamento |
+| **status** | StatusPagamentoEnum | Status da transação [PENDENTE, PAGO, CANCELADO, EXPIRADO, REEMBOLSADO] |
+| **gatewayId** | String | Identificador no gateway de pagamento |
+| **codigoPix** | String | Código Pix Copia e Cola (`TEXT`) |
+| **qrCodeBase64** | String | Imagem do QR Code em Base64 (`TEXT`) |
+| **dataCriacao** | LocalDateTime | Data e hora de geração do pagamento |
+| **pagamento** | LocalDateTime | Data e hora em que o pagamento foi confirmado |
+| **expiracao** | LocalDateTime | Data e hora limite para pagamento Pix |
 | *Herda de BaseEntity* | - | Campos de auditoria |
 
 ---
@@ -152,6 +171,8 @@ Usuarios
 Aluno
    │
    └─────► Matricula ◄───── Plano
+                │
+                └─────► Pagamento
 
 Personal
    │
@@ -160,6 +181,7 @@ Personal
 Treino
    │
    └─────► ItemTreino ◄───── Exercicio
+
 ```
 
 ---
@@ -168,7 +190,6 @@ Treino
 
 ```text
 src/main/java/com/academia/academia_api
-
 ├── controllers
 │   ├── AuthController
 │   ├── AlunoController
@@ -185,6 +206,7 @@ src/main/java/com/academia/academia_api
 │   ├── BaseEntity         
 │   ├── Usuarios
 │   ├── Aluno
+│   ├── Pagamento
 │   ├── Plano
 │   ├── Matricula
 │   ├── Personal
@@ -195,8 +217,14 @@ src/main/java/com/academia/academia_api
 │   └── enums
 │       ├── UserRole
 │       ├── SexoEnum
-|       ├── GrupoMuscular 
+│       ├── GrupoMuscular 
+│       ├── MetodoPagamentEnum
+│       ├── StatusPagamentoEnum
 │       └── TipoPlano
+│
+│
+├── gateway
+│   └── PixGateway
 │
 ├── infra
 |   ├── config

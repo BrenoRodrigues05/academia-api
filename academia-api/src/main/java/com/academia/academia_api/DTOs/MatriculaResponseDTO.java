@@ -35,7 +35,22 @@ public class MatriculaResponseDTO {
 
     @Schema(
             description = "Status de ativação da matrícula",
-            example = "true"
+            example = "false"
     )
     private boolean ativa;
+
+    @Schema(
+            description = "ID do pagamento gerado no sistema", example = "1"
+    )
+    private Long pagamentoId;
+
+    @Schema(
+            description = "Código Copia e Cola do Pix para o cliente pagar no app do banco"
+    )
+    private String pixCopiaECola;
+
+    @Schema(
+            description = "Imagem do QR Code em Base64 para exibição na tela"
+    )
+    private String qrCodeBase64;
 }

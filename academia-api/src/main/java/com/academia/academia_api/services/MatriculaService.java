@@ -3,10 +3,7 @@ package com.academia.academia_api.services;
 import com.academia.academia_api.DTOs.MatriculaCreateDTO;
 import com.academia.academia_api.DTOs.MatriculaResponseDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
-import com.academia.academia_api.entity.Aluno;
-import com.academia.academia_api.entity.Matricula;
-import com.academia.academia_api.entity.Plano;
-import com.academia.academia_api.entity.Usuarios;
+import com.academia.academia_api.entity.*;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.MatriculaMapper;
@@ -26,13 +23,15 @@ public class MatriculaService {
     private final AlunoRepository alunoRepository;
     private final PlanoRepository planoRepository;
     private final MatriculaMapper matriculaMapper;
+    private final PagamentoService pagamentoService;
 
     public MatriculaService(MatriculaRepositoy matriculaRepositoy, AlunoRepository alunoRepository,
-                            PlanoRepository planoRepository, MatriculaMapper matriculaMapper) {
+                            PlanoRepository planoRepository, MatriculaMapper matriculaMapper, PagamentoService pagamentoService) {
         this.matriculaRepositoy = matriculaRepositoy;
         this.alunoRepository = alunoRepository;
         this.planoRepository = planoRepository;
         this.matriculaMapper = matriculaMapper;
+        this.pagamentoService = pagamentoService;
     }
 
     public PageResponseDTO<MatriculaResponseDTO> listarMatriculas(int page, int size) {
@@ -91,10 +90,18 @@ public class MatriculaService {
         Matricula novaMatricula = matriculaMapper.toEntity(dto);
         novaMatricula.setAluno(aluno);
         novaMatricula.setPlano(plano);
-        novaMatricula.setAtiva(dto.isAtiva());
+        novaMatricula.setAtiva(false);
 
         Matricula salva = matriculaRepositoy.save(novaMatricula);
-        return matriculaMapper.toResponseDTO(salva);
+
+        Pagamento pagamento = pagamentoService.criarPagamentoPix(salva);
+
+        MatriculaResponseDTO response = matriculaMapper.toResponseDTO(salva);
+        response.setPagamentoId(pagamento.getId());
+        response.setPixCopiaECola(pagamento.getCodigoPix());
+        response.setQrCodeBase64(pagamento.getQrCodeBase64());
+
+        return response;
     }
 
     public  MatriculaResponseDTO editarPlanoMatricula(Long idMatricula, Long idPlano){
