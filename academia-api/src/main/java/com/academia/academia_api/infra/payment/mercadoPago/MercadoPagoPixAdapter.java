@@ -1,7 +1,7 @@
 package com.academia.academia_api.infra.payment.mercadoPago;
-
 import com.academia.academia_api.DTOs.PixCobrancaResponse;
-import com.academia.academia_api.gateway.PixGateway;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
+import com.academia.academia_api.infra.gateway.PixGateway;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
@@ -13,18 +13,19 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
-public class MercadoPagoPixAdapter  implements PixGateway {
-    @Override
-    public PixCobrancaResponse gerarCobrancaPix(Long pagamentoId, BigDecimal valor, String descricao, String emailDevedor) {
+public class MercadoPagoPixAdapter implements PixGateway {
 
+    @Override
+    public PixCobrancaResponse gerarCobrancaPix(Long pagamentoId, BigDecimal valor, String descricao, String userNameDevedor) {
         try {
             PaymentClient client = new PaymentClient();
 
             PaymentPayerRequest payer = PaymentPayerRequest.builder()
-                    .email(emailDevedor)
+                    .email(userNameDevedor)
                     .build();
 
             OffsetDateTime dataExpiracao = OffsetDateTime.now().plusMinutes(30);
@@ -38,7 +39,7 @@ public class MercadoPagoPixAdapter  implements PixGateway {
                     .build();
 
             MPRequestOptions requestOptions = MPRequestOptions.builder()
-                    .customHeaders(java.util.Map.of("X-Idempotency-Key", UUID.randomUUID().toString()))
+                    .customHeaders(Map.of("X-Idempotency-Key", UUID.randomUUID().toString()))
                     .build();
 
             Payment payment = client.create(createRequest, requestOptions);
@@ -51,7 +52,7 @@ public class MercadoPagoPixAdapter  implements PixGateway {
                     .getTransactionData()
                     .getQrCodeBase64();
 
-            LocalDateTime expiracaoLocalDateTime = payment.getDateOfExpiration()
+            LocalDateTime expiracaoLocal = payment.getDateOfExpiration()
                     .toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
@@ -61,10 +62,11 @@ public class MercadoPagoPixAdapter  implements PixGateway {
                     pixCopiaECola,
                     qrCodeBase64,
                     payment.getTransactionAmount(),
-                    expiracaoLocalDateTime
+                    expiracaoLocal
             );
-        }catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar cobrança Pix no Mercado Pago: " + e.getMessage(), e);
+
+        } catch (Exception e) {
+            throw new BadRequestException("Erro ao gerar a cobrança Pix no Mercado Pago: " + e.getMessage());
         }
     }
 }
