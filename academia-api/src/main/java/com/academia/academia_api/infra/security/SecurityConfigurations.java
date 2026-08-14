@@ -36,6 +36,9 @@ public class SecurityConfigurations {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
+                        //Pagamento
+                        .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()
+
                         // Login
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
