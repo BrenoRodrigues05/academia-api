@@ -5,7 +5,10 @@ import com.academia.academia_api.entity.Matricula;
 import com.academia.academia_api.entity.enums.MetodoPagamentoEnum;
 import com.academia.academia_api.entity.Pagamento;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
+import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.infra.gateway.PixGateway;
+import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PagamentoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +19,12 @@ import java.time.LocalDateTime;
 public class PagamentoService {
 
     private final PagamentoRepository pagamentoRepository;
+    private  final MatriculaRepositoy matriculaRepositoy;
     private final PixGateway pixGateway;
 
-    public PagamentoService(PagamentoRepository pagamentoRepository, PixGateway pixGateway) {
+    public PagamentoService(PagamentoRepository pagamentoRepository, MatriculaRepositoy matriculaRepositoy, PixGateway pixGateway) {
         this.pagamentoRepository = pagamentoRepository;
+        this.matriculaRepositoy = matriculaRepositoy;
         this.pixGateway = pixGateway;
     }
 
@@ -50,5 +55,30 @@ public class PagamentoService {
         pagamento.setExpiracao(responsePix.dataexpiracao());
 
         return pagamentoRepository.save(pagamento);
+    }
+
+    @Transactional
+    public void processarNotificacaoMercadoPago(String idTransacaoGateway) {
+        try {
+            com.mercadopago.client.payment.PaymentClient client = new com.mercadopago.client.payment.PaymentClient();
+            com.mercadopago.resources.payment.Payment payment = client.get(Long.parseLong(idTransacaoGateway));
+
+            Pagamento pagamento = pagamentoRepository.findByGatewayId(idTransacaoGateway)
+                    .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado para o ID de transação: " + idTransacaoGateway));
+
+            if ("approved".equalsIgnoreCase(payment.getStatus()) && pagamento.getStatus() == StatusPagamentoEnum.PENDENTE) {
+
+                pagamento.setStatus(StatusPagamentoEnum.PAGO);
+                pagamento.setPagamento(LocalDateTime.now());
+                pagamentoRepository.save(pagamento);
+
+                Matricula matricula = pagamento.getMatricula();
+                matricula.setAtiva(true);
+                matriculaRepositoy.save(matricula);
+            }
+
+        } catch (Exception e) {
+            throw new BadRequestException("Erro ao processar notificação do Mercado Pago: " + e.getMessage());
+        }
     }
 }
