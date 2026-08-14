@@ -1,5 +1,6 @@
 package com.academia.academia_api.entity;
 
+import com.academia.academia_api.entity.enums.MetodoPagamentoEnum;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,9 @@ public class Pagamento {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusPagamentoEnum status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MetodoPagamentoEnum metodoPagamento;
     private String gatewayId;
     @Column(columnDefinition = "TEXT")
     private String codigoPix;

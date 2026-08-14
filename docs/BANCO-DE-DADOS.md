@@ -30,4 +30,5 @@ V10_add_auditoria.sql
 V11_add-datas-treino.sql
 V12_create_table_execucoes_treino.sql
 V13_create_table_pagamentos.sql
+V14_add_metodoPagamento_to_Pagamento.sql
 ```
