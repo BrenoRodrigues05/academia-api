@@ -5,6 +5,7 @@ import com.academia.academia_api.DTOs.MatriculaResponseDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Matricula;
+import com.academia.academia_api.entity.Pagamento;
 import com.academia.academia_api.entity.Plano;
 import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
@@ -54,6 +55,9 @@ class MatriculaServiceTest {
     @Mock
     private MatriculaMapper matriculaMapper;
 
+    @Mock
+    private PagamentoService pagamentoService;
+
     @InjectMocks
     private MatriculaService matriculaService;
 
@@ -66,6 +70,7 @@ class MatriculaServiceTest {
     private Aluno aluno;
     private Plano plano;
     private Usuarios usuarioLogado;
+    private Pagamento pagamento;
 
     @BeforeEach
     void setUp() {
@@ -95,6 +100,11 @@ class MatriculaServiceTest {
         responseDTO = new MatriculaResponseDTO();
         responseDTO.setMatricula(10L);
         responseDTO.setAtiva(true);
+
+        pagamento = new Pagamento();
+        pagamento.setId(50L);
+        pagamento.setCodigoPix("00020126360014BR.GOV.BCB.PIX...");
+        pagamento.setQrCodeBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...");
     }
 
     @AfterEach
@@ -198,26 +208,42 @@ class MatriculaServiceTest {
     class CriarMatriculaTests {
 
         @Test
-        @DisplayName("Deve criar matrícula com sucesso quando os dados forem válidos")
+        @DisplayName("Deve criar matrícula desativada e gerar o pagamento Pix com sucesso")
         void deveCriarMatriculaComSucesso() {
             MatriculaCreateDTO dto = new MatriculaCreateDTO();
             dto.setAlunoId(1L);
             dto.setPlanoId(5L);
             dto.setAtiva(true);
 
+            Matricula matriculaInativa = new Matricula();
+            matriculaInativa.setMatricula(10L);
+            matriculaInativa.setAluno(aluno);
+            matriculaInativa.setPlano(plano);
+            matriculaInativa.setAtiva(false);
+
+            MatriculaResponseDTO baseDTO = new MatriculaResponseDTO();
+            baseDTO.setMatricula(10L);
+            baseDTO.setAtiva(false);
+
             when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
             when(matriculaRepositoy.findByAlunoIdAndAtiva(1L, true)).thenReturn(null);
             when(planoRepository.findById(5L)).thenReturn(Optional.of(plano));
 
-            when(matriculaMapper.toEntity(dto)).thenReturn(matricula);
-            when(matriculaRepositoy.save(any(Matricula.class))).thenReturn(matricula);
-            when(matriculaMapper.toResponseDTO(matricula)).thenReturn(responseDTO);
+            when(matriculaMapper.toEntity(dto)).thenReturn(matriculaInativa);
+            when(matriculaRepositoy.save(any(Matricula.class))).thenReturn(matriculaInativa);
+            when(pagamentoService.criarPagamentoPix(matriculaInativa)).thenReturn(pagamento);
+            when(matriculaMapper.toResponseDTO(matriculaInativa)).thenReturn(baseDTO);
 
             MatriculaResponseDTO resultado = matriculaService.criarMatricula(dto);
 
             assertNotNull(resultado);
-            assertTrue(resultado.isAtiva());
+            assertFalse(resultado.isAtiva());
+            assertEquals(50L, resultado.getPagamentoId());
+            assertEquals("00020126360014BR.GOV.BCB.PIX...", resultado.getPixCopiaECola());
+            assertEquals("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...", resultado.getQrCodeBase64());
+
             verify(matriculaRepositoy, times(1)).save(any(Matricula.class));
+            verify(pagamentoService, times(1)).criarPagamentoPix(matriculaInativa);
         }
 
         @Test
@@ -231,6 +257,7 @@ class MatriculaServiceTest {
 
             assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemAluno));
             assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemPlano));
+            verify(pagamentoService, never()).criarPagamentoPix(any());
         }
 
         @Test
@@ -248,6 +275,7 @@ class MatriculaServiceTest {
 
             assertEquals("O aluno informado já possui uma matrícula ativa.", exception.getMessage());
             verify(matriculaRepositoy, never()).save(any());
+            verify(pagamentoService, never()).criarPagamentoPix(any());
         }
     }
 
