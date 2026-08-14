@@ -1,4 +1,4 @@
-package com.academia.academia_api.gateway;
+package com.academia.academia_api.infra.gateway;
 
 import com.academia.academia_api.DTOs.PixCobrancaResponse;
 
