@@ -141,6 +141,14 @@ PATCH  /api/{id}/ativo
 
 ---
 
+## 💰 Pagamentos & Webhooks
+
+```http
+POST   /api/webhooks/mercadopago
+```
+
+---
+
 ## 📋 Treinos
 
 ```http

@@ -1,13 +1,29 @@
-# 🛢️ Banco de Dados
+# 🛢️ Banco de Dados & Configurações
 
-## PostgreSQL
+## 🐘 PostgreSQL Configuration
+
+As configurações do banco de dados e integrações são definidas via `application.properties` utilizando variáveis de ambiente para credenciais sensíveis:
 
 ```properties
+# Conexão com o Banco de Dados
 spring.datasource.url=jdbc:postgresql://localhost:5432/academia_db
 spring.datasource.username=postgres
-spring.datasource.password=senha
+spring.datasource.password=${DB_PASSWORD:postgres}
 
+# Hibernate & JPA (Validação com Flyway)
 spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Security & JWT
+api.security.token.secret=${JWT_SECRET:minha-chave-secreta-de-desenvolvimento}
+
+# Mercado Pago Gateway
+mercadopago.access-token=${MERCADOPAGO_ACCESS_TOKEN:SEU_ACCESS_TOKEN_DO_MERCADO_PAGO}
+
+# Observabilidade & Health Check
+management.endpoints.web.exposure.include=health
+management.endpoint.health.show-details=always
 ```
 
 ---

@@ -8,6 +8,7 @@ API REST desenvolvida com Spring Boot para gerenciamento de academias, com contr
 
 - [Tecnologias](#-tecnologias)
 - [Arquitetura](#-arquitetura)
+- [Módulo de Pagamentos e Webhooks](#-módulo-de-pagamentos-e-webhooks)
 - [Controle de Acesso (RBAC)](#-controle-de-acesso-rbac)
 - [Como Executar](#-como-executar)
 - [Primeiro Acesso](#-primeiro-acesso)
@@ -20,6 +21,8 @@ API REST desenvolvida com Spring Boot para gerenciamento de academias, com contr
 
 **Backend:** Java 21, Spring Boot 3, Spring Data JPA, Hibernate, Spring Validation, PostgreSQL, Flyway, MapStruct, Lombok, Maven
 
+**Pagamentos & Integrations:** Mercado Pago Java SDK, Webhooks, Pix (EMV + QR Code)
+
 **Segurança:** Spring Security, JWT, BCrypt, RBAC
 
 **DevOps & Containers:** Docker, Docker Compose
@@ -31,9 +34,30 @@ API REST desenvolvida com Spring Boot para gerenciamento de academias, com contr
 ```
 Controller → DTO → Service → Mapper (MapStruct) → Entity → Repository → PostgreSQL
 ```
-
+* **Clean Architecture & Design Patterns:** Uso do padrão **Adapter / Strategy** para gateway de pagamentos (`PixGateway` e `MercadoPagoPixAdapter`), desacoplando o domínio das bibliotecas externas e facilitando a troca de provedores de pagamento.
 * **Tratamento de Erros:** Centralizado via Global Exception Handler, com exceptions customizadas (`ResourceNotFoundException`, `BusinessException`, `UnauthorizedException`) e validações padronizadas de DTOs.
 * **Auditoria de Dados:** Implementada de forma global através de uma `@MappedSuperclass` (`BaseEntity`) integrada ao **Spring Data JPA Auditing**, garantindo rastreabilidade automatizada de criação e modificação (`created_at`, `updated_at`, `created_by`, `updated_by`) em todas as entidades principais.
+
+---
+
+## 💳 Módulo de Pagamentos e Webhooks
+
+A aplicação conta com um fluxo completo e automatizado de processamento de pagamentos via **Pix**:
+
+### 🔄 Fluxo de Pagamento e Ativação
+
+1- Cliente Solicita Matrícula ➔ API gera cobrança Pix no Mercado Pago (Status: PENDENTE, Matrícula: Inativa)
+
+2- Cliente efetua o pagamento no App do Banco
+
+3- Mercado Pago notifica a API ➔ POST /api/webhooks/mercadopago (Notificação Assíncrona)
+
+4- API valida o pagamento na Gateway ➔ Altera Pagamento para PAGO e Ativa a Matrícula automaticamente
+
+* **Idempotência e Segurança:** Validação direta na SDK da gateway a cada notificação para evitar cobranças duplicadas e garantir a integridade do status.
+* **Acesso Público Restrito:** Endpoint de Webhook liberado no Spring Security exclusivamente para callbacks da provedora de pagamentos.
+
+---
 
 ## 👥 Controle de Acesso (RBAC)
 
@@ -164,6 +188,7 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 - ✅ Auditoria de Dados (Spring Data JPA Auditing com BaseEntity)
 - ✅ Testes unitários
 - ✅ Dockerization (API & PostgreSQL via Docker Compose)
+- ✅ Integração de Pagamento Pix com Mercado Pago SDK e Webhook
 - ✅ CI/CD Pipeline
 - ⬜ Logs, Soft Delete
 
