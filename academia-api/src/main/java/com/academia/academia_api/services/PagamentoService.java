@@ -10,6 +10,8 @@ import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.infra.gateway.PixGateway;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PagamentoRepository;
+import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.resources.payment.Payment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,25 +62,23 @@ public class PagamentoService {
     @Transactional
     public void processarNotificacaoMercadoPago(String idTransacaoGateway) {
         try {
-            com.mercadopago.client.payment.PaymentClient client = new com.mercadopago.client.payment.PaymentClient();
-            com.mercadopago.resources.payment.Payment payment = client.get(Long.parseLong(idTransacaoGateway));
-
             Pagamento pagamento = pagamentoRepository.findByGatewayId(idTransacaoGateway)
                     .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado para o ID de transação: " + idTransacaoGateway));
-
-            if ("approved".equalsIgnoreCase(payment.getStatus()) && pagamento.getStatus() == StatusPagamentoEnum.PENDENTE) {
+            if (pagamento.getStatus() == StatusPagamentoEnum.PENDENTE) {
 
                 pagamento.setStatus(StatusPagamentoEnum.PAGO);
                 pagamento.setPagamento(LocalDateTime.now());
-                pagamentoRepository.save(pagamento);
+                pagamentoRepository.saveAndFlush(pagamento);
 
                 Matricula matricula = pagamento.getMatricula();
                 matricula.setAtiva(true);
-                matriculaRepositoy.save(matricula);
+                matriculaRepositoy.saveAndFlush(matricula);
+
+                System.out.println(">>> SUCESSO: Pagamento " + idTransacaoGateway + " atualizado para PAGO e Matrícula ativada!");
             }
 
         } catch (Exception e) {
-            throw new BadRequestException("Erro ao processar notificação do Mercado Pago: " + e.getMessage());
+            throw new BadRequestException("Erro ao processar notificação: " + e.getMessage());
         }
     }
 }
