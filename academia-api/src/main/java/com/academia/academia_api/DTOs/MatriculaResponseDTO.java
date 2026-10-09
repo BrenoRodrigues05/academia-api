@@ -1,7 +1,5 @@
 package com.academia.academia_api.DTOs;
 
-import com.academia.academia_api.entity.Aluno;
-import com.academia.academia_api.entity.Plano;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

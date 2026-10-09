@@ -13,6 +13,7 @@ import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.MatriculaMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
+import com.academia.academia_api.repository.PagamentoRepository;
 import com.academia.academia_api.repository.PlanoRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,7 +105,7 @@ class MatriculaServiceTest {
         pagamento = new Pagamento();
         pagamento.setId(50L);
         pagamento.setCodigoPix("00020126360014BR.GOV.BCB.PIX...");
-        pagamento.setQrCodeBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...");
+        pagamento.setQrCodeBase64("iVBORw0KGgoAAAANSUhEUgAA...");
     }
 
     @AfterEach
@@ -208,12 +209,11 @@ class MatriculaServiceTest {
     class CriarMatriculaTests {
 
         @Test
-        @DisplayName("Deve criar matrícula desativada e gerar o pagamento Pix com sucesso")
-        void deveCriarMatriculaComSucesso() {
+        @DisplayName("Deve criar matrícula no fluxo ADMIN (com alunoId informado)")
+        void deveCriarMatriculaFluxoAdmin() {
             MatriculaCreateDTO dto = new MatriculaCreateDTO();
             dto.setAlunoId(1L);
             dto.setPlanoId(5L);
-            dto.setAtiva(true);
 
             Matricula matriculaInativa = new Matricula();
             matriculaInativa.setMatricula(10L);
@@ -240,23 +240,60 @@ class MatriculaServiceTest {
             assertFalse(resultado.isAtiva());
             assertEquals(50L, resultado.getPagamentoId());
             assertEquals("00020126360014BR.GOV.BCB.PIX...", resultado.getPixCopiaECola());
-            assertEquals("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...", resultado.getQrCodeBase64());
+            assertEquals("iVBORw0KGgoAAAANSUhEUgAA...", resultado.getQrCodeBase64());
 
+            verify(alunoRepository, times(1)).findById(1L);
             verify(matriculaRepositoy, times(1)).save(any(Matricula.class));
             verify(pagamentoService, times(1)).criarPagamentoPix(matriculaInativa);
         }
 
         @Test
-        @DisplayName("Deve lançar BadRequestException se IDs de aluno ou plano forem inválidos")
-        void deveValidarIdsMaioresQueZero() {
-            MatriculaCreateDTO dtoSemAluno = new MatriculaCreateDTO();
-            dtoSemAluno.setPlanoId(5L);
+        @DisplayName("Deve criar matrícula no fluxo ALUNO LOGADO (sem alunoId no DTO)")
+        void deveCriarMatriculaFluxoAlunoLogado() {
+            mockUsuarioLogado(usuarioLogado);
 
+            MatriculaCreateDTO dto = new MatriculaCreateDTO();
+            dto.setPlanoId(5L);
+
+            Matricula matriculaInativa = new Matricula();
+            matriculaInativa.setMatricula(10L);
+            matriculaInativa.setAluno(aluno);
+            matriculaInativa.setPlano(plano);
+            matriculaInativa.setAtiva(false);
+
+            MatriculaResponseDTO baseDTO = new MatriculaResponseDTO();
+            baseDTO.setMatricula(10L);
+            baseDTO.setAtiva(false);
+
+            when(alunoRepository.findByUsuarioId(100L)).thenReturn(Optional.of(aluno));
+            when(matriculaRepositoy.findByAlunoIdAndAtiva(1L, true)).thenReturn(null);
+            when(planoRepository.findById(5L)).thenReturn(Optional.of(plano));
+
+            when(matriculaMapper.toEntity(dto)).thenReturn(matriculaInativa);
+            when(matriculaRepositoy.save(any(Matricula.class))).thenReturn(matriculaInativa);
+            when(pagamentoService.criarPagamentoPix(matriculaInativa)).thenReturn(pagamento);
+            when(matriculaMapper.toResponseDTO(matriculaInativa)).thenReturn(baseDTO);
+
+            MatriculaResponseDTO resultado = matriculaService.criarMatricula(dto);
+
+            assertNotNull(resultado);
+            assertEquals(50L, resultado.getPagamentoId());
+            verify(alunoRepository, times(1)).findByUsuarioId(100L);
+            verify(alunoRepository, never()).findById(anyLong());
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o ID do plano for nulo ou menor/igual a zero")
+        void deveValidarPlanoIdInvalido() {
             MatriculaCreateDTO dtoSemPlano = new MatriculaCreateDTO();
-            dtoSemPlano.setAlunoId(1L);
 
-            assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemAluno));
-            assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemPlano));
+            BadRequestException exNull = assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemPlano));
+            assertEquals("O ID do plano deve ser válido e maior que zero.", exNull.getMessage());
+
+            dtoSemPlano.setPlanoId(0L);
+            BadRequestException exZero = assertThrows(BadRequestException.class, () -> matriculaService.criarMatricula(dtoSemPlano));
+            assertEquals("O ID do plano deve ser válido e maior que zero.", exZero.getMessage());
+
             verify(pagamentoService, never()).criarPagamentoPix(any());
         }
 

@@ -8,6 +8,7 @@ import com.academia.academia_api.entity.Plano;
 import com.academia.academia_api.entity.Usuarios;
 import com.academia.academia_api.entity.enums.MetodoPagamentoEnum;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
+import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.gateway.PixGateway;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PagamentoRepository;
@@ -22,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Testes do Serviço de Pagamentos (PagamentoService)")
 class PagamentoServiceTest {
 
     @Mock
@@ -56,6 +59,7 @@ class PagamentoServiceTest {
 
         alunoMock = new Aluno();
         alunoMock.setId(1L);
+        alunoMock.setEmail("aluno@teste.com");
         alunoMock.setUsuario(usuarioMock);
 
         planoMock = new Plano();
@@ -99,7 +103,7 @@ class PagamentoServiceTest {
                     eq(100L),
                     eq(new BigDecimal("100.00")),
                     eq("Matrícula Plano: Plano Mensal"),
-                    eq("aluno.teste")
+                    eq("aluno@teste.com")
             )).thenReturn(pixResponse);
 
             Pagamento resultado = pagamentoService.criarPagamentoPix(matriculaMock);
@@ -117,8 +121,70 @@ class PagamentoServiceTest {
                     eq(100L),
                     eq(new BigDecimal("100.00")),
                     eq("Matrícula Plano: Plano Mensal"),
-                    eq("aluno.teste")
+                    eq("aluno@teste.com")
             );
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o e-mail do aluno for nulo ou em branco")
+        void deveLancarExcecaoQuandoEmailAlunoForInvalido() {
+            alunoMock.setEmail(null);
+
+            when(pagamentoRepository.save(any(Pagamento.class))).thenAnswer(invocation -> {
+                Pagamento p = invocation.getArgument(0);
+                p.setId(100L);
+                return p;
+            });
+
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> pagamentoService.criarPagamentoPix(matriculaMock)
+            );
+
+            assertEquals("E-mail do aluno é obrigatório para gerar o Pix.", exception.getMessage());
+            verify(pixGateway, never()).gerarCobrancaPix(any(), any(), any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Testes do método processarNotificacaoMercadoPago")
+    class ProcessarNotificacaoMercadoPagoTests {
+
+        @Test
+        @DisplayName("Deve atualizar pagamento para PAGO e ativar matrícula com sucesso ao receber notificação")
+        void deveProcessarNotificacaoComSucesso() {
+            Pagamento pagamentoPendente = new Pagamento();
+            pagamentoPendente.setId(100L);
+            pagamentoPendente.setGatewayId("transacao-gw-123");
+            pagamentoPendente.setStatus(StatusPagamentoEnum.PENDENTE);
+            pagamentoPendente.setMatricula(matriculaMock);
+
+            when(pagamentoRepository.findByGatewayId("transacao-gw-123"))
+                    .thenReturn(Optional.of(pagamentoPendente));
+
+            pagamentoService.processarNotificacaoMercadoPago("transacao-gw-123");
+
+            assertEquals(StatusPagamentoEnum.PAGO, pagamentoPendente.getStatus());
+            assertNotNull(pagamentoPendente.getPagamento());
+            assertTrue(matriculaMock.isAtiva());
+
+            verify(pagamentoRepository, times(1)).saveAndFlush(pagamentoPendente);
+            verify(matriculaRepositoy, times(1)).saveAndFlush(matriculaMock);
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o pagamento não for encontrado")
+        void deveLancarErroQuandoPagamentoNaoEncontrado() {
+            when(pagamentoRepository.findByGatewayId("id-inexistente"))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(
+                    BadRequestException.class,
+                    () -> pagamentoService.processarNotificacaoMercadoPago("id-inexistente")
+            );
+
+            verify(pagamentoRepository, never()).saveAndFlush(any());
+            verify(matriculaRepositoy, never()).saveAndFlush(any());
         }
     }
 }

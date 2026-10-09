@@ -4,11 +4,13 @@ import com.academia.academia_api.DTOs.MatriculaCreateDTO;
 import com.academia.academia_api.DTOs.MatriculaResponseDTO;
 import com.academia.academia_api.DTOs.PageResponseDTO;
 import com.academia.academia_api.entity.*;
+import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.mappings.MatriculaMapper;
 import com.academia.academia_api.repository.AlunoRepository;
 import com.academia.academia_api.repository.MatriculaRepositoy;
+import com.academia.academia_api.repository.PagamentoRepository;
 import com.academia.academia_api.repository.PlanoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,14 +22,16 @@ import org.springframework.stereotype.Service;
 public class MatriculaService {
 
     private final MatriculaRepositoy matriculaRepositoy;
+    private final PagamentoRepository pagamentoRepository;
     private final AlunoRepository alunoRepository;
     private final PlanoRepository planoRepository;
     private final MatriculaMapper matriculaMapper;
     private final PagamentoService pagamentoService;
 
-    public MatriculaService(MatriculaRepositoy matriculaRepositoy, AlunoRepository alunoRepository,
+    public MatriculaService(MatriculaRepositoy matriculaRepositoy, PagamentoRepository pagamentoRepository, AlunoRepository alunoRepository,
                             PlanoRepository planoRepository, MatriculaMapper matriculaMapper, PagamentoService pagamentoService) {
         this.matriculaRepositoy = matriculaRepositoy;
+        this.pagamentoRepository = pagamentoRepository;
         this.alunoRepository = alunoRepository;
         this.planoRepository = planoRepository;
         this.matriculaMapper = matriculaMapper;
@@ -54,7 +58,20 @@ public class MatriculaService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Nenhum plano encontrado atrelado ao aluno."));
 
-        return matriculaMapper.toResponseDTO(matricula);
+        MatriculaResponseDTO response = matriculaMapper.toResponseDTO(matricula);
+
+        if (!matricula.isAtiva()) {
+            pagamentoRepository.findFirstByMatriculaMatriculaAndStatusOrderByMatriculaDesc(
+                    matricula.getMatricula(),
+                    StatusPagamentoEnum.PENDENTE
+            ).ifPresent(pagamento -> {
+                response.setPagamentoId(getMeuPlano().getPagamentoId());
+                response.setPixCopiaECola(getMeuPlano().getPixCopiaECola());
+                response.setQrCodeBase64(getMeuPlano().getQrCodeBase64());
+            });
+        }
+
+        return response;
     }
 
     public MatriculaResponseDTO findById(Long idMatricula) {
@@ -69,17 +86,24 @@ public class MatriculaService {
     }
 
     public MatriculaResponseDTO criarMatricula(MatriculaCreateDTO dto) {
-        Long idAluno = dto.getAlunoId();
         Long idPlano = dto.getPlanoId();
 
-        if (idAluno == null || idAluno <= 0 || idPlano == null || idPlano <= 0) {
-            throw new BadRequestException("Os IDs de aluno e plano devem ser válidos e maiores que zero.");
+        if (idPlano == null || idPlano <= 0) {
+            throw new BadRequestException("O ID do plano deve ser válido e maior que zero.");
         }
 
-        Aluno aluno = alunoRepository.findById(idAluno)
-                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com o ID: " + idAluno));
+        Aluno aluno;
 
-        var matriculaAtivaExistente = matriculaRepositoy.findByAlunoIdAndAtiva(idAluno, true);
+        if (dto.getAlunoId() != null && dto.getAlunoId() > 0) {
+            aluno = alunoRepository.findById(dto.getAlunoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com o ID: " + dto.getAlunoId()));
+        } else {
+            Usuarios usuarioLogado = getUsuarioLogado();
+            aluno = alunoRepository.findByUsuarioId(usuarioLogado.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado para o usuário logado."));
+        }
+
+        var matriculaAtivaExistente = matriculaRepositoy.findByAlunoIdAndAtiva(aluno.getId(), true);
         if (matriculaAtivaExistente != null) {
             throw new BadRequestException("O aluno informado já possui uma matrícula ativa.");
         }

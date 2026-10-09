@@ -20,5 +20,6 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     List<Aluno> findByNomeContainingIgnoreCase(String nome);
     Page<Aluno> findBySexo(SexoEnum sexo, Pageable pageable);
     List<Aluno> findByEmailContainingIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(String email);
     Optional<Aluno> findByUsuarioId(Long usuarioId);
 }

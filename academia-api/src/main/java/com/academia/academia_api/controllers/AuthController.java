@@ -76,9 +76,9 @@ public class AuthController {
     public ResponseEntity<?> register(
             @RequestBody @Valid RegisterAlunoDTO dto) {
 
-        authService.registerAluno(dto);
+        MatriculaResponseDTO respostaPix = authService.registerAluno(dto);
 
-        return ResponseEntity.status(201).build();
+        return ResponseEntity.status(201).body(respostaPix);
     }
 
     @Operation(

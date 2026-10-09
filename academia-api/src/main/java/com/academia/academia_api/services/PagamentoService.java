@@ -42,13 +42,17 @@ public class PagamentoService {
         pagamento = pagamentoRepository.save(pagamento);
 
         String descricao = "Matrícula Plano: " + matricula.getPlano().getNome();
-        String usernameAluno = matricula.getAluno().getUsuario().getUsername();
+
+        String emailAluno = matricula.getAluno().getEmail();
+        if (emailAluno == null || emailAluno.isBlank()) {
+            throw new BadRequestException("E-mail do aluno é obrigatório para gerar o Pix.");
+        }
 
         PixCobrancaResponse responsePix = pixGateway.gerarCobrancaPix(
                 pagamento.getId(),
                 pagamento.getValor(),
                 descricao,
-                usernameAluno
+                emailAluno.trim()
         );
 
         pagamento.setGatewayId(responsePix.transacaoId());

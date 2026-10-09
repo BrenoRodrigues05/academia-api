@@ -1,8 +1,6 @@
 package com.academia.academia_api.services;
 
-import com.academia.academia_api.DTOs.RegisterAdminDTO;
-import com.academia.academia_api.DTOs.RegisterAlunoDTO;
-import com.academia.academia_api.DTOs.RegisterPersonalDTO;
+import com.academia.academia_api.DTOs.*;
 import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Personal;
 import com.academia.academia_api.entity.Usuarios;
@@ -24,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +39,9 @@ class AuthServiceTest {
 
     @Mock
     private PersonalRepository personalRepository;
+
+    @Mock
+    private MatriculaService matriculaService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -69,9 +69,9 @@ class AuthServiceTest {
                     "Breno Rodrigues",
                     "breno@email.com",
                     LocalDate.of(2005, 5, 15),
-                    "8198871'6545",
-                    SexoEnum.MASCULINO
-
+                    "81988716545",
+                    SexoEnum.MASCULINO,
+                    1L
             );
         }
 
@@ -81,7 +81,7 @@ class AuthServiceTest {
             RegisterAlunoDTO dto = criarDtoValido();
 
             when(usuarioRepository.existsByLogin(dto.login())).thenReturn(false);
-            when(alunoRepository.findByEmailContainingIgnoreCase(dto.email())).thenReturn(null);
+            when(alunoRepository.existsByEmailIgnoreCase(dto.email())).thenReturn(false);
             when(passwordEncoder.encode(dto.senha())).thenReturn("senha_criptografada");
 
             when(usuarioRepository.save(any(Usuarios.class))).thenAnswer(invocation -> {
@@ -90,16 +90,23 @@ class AuthServiceTest {
                 return u;
             });
 
+            when(alunoRepository.save(any(Aluno.class))).thenAnswer(invocation -> {
+                Aluno a = invocation.getArgument(0);
+                a.setId(1L);
+                return a;
+            });
+
             assertDoesNotThrow(() -> authService.registerAluno(dto));
 
             verify(usuarioRepository, times(1)).save(usuarioCaptor.capture());
             verify(alunoRepository, times(1)).save(alunoCaptor.capture());
+            verify(matriculaService, times(1)).criarMatricula(any(MatriculaCreateDTO.class));
 
             Usuarios usuarioSalvo = usuarioCaptor.getValue();
             assertEquals("brenorods", usuarioSalvo.getLogin());
             assertEquals("senha_criptografada", usuarioSalvo.getSenha());
             assertEquals(UserRole.ALUNO, usuarioSalvo.getRole());
-            assertTrue(usuarioSalvo.getAtivo());
+            assertFalse(usuarioSalvo.getAtivo());
 
             Aluno alunoSalvo = alunoCaptor.getValue();
             assertEquals("Breno Rodrigues", alunoSalvo.getNome());
@@ -128,7 +135,7 @@ class AuthServiceTest {
             RegisterAlunoDTO dto = criarDtoValido();
 
             when(usuarioRepository.existsByLogin(dto.login())).thenReturn(false);
-            when(alunoRepository.findByEmailContainingIgnoreCase(dto.email())).thenReturn(List.of(new Aluno()));
+            when(alunoRepository.existsByEmailIgnoreCase(dto.email())).thenReturn(true);
 
             BadRequestException exception = assertThrows(BadRequestException.class,
                     () -> authService.registerAluno(dto));

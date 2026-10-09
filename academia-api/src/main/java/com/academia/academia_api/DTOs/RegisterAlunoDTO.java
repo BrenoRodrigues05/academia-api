@@ -57,6 +57,13 @@ public record RegisterAlunoDTO(
                 example = "MASCULINO"
         )
         @NotNull
-        SexoEnum sexo
+        SexoEnum sexo,
+
+        @Schema(
+                description = "ID do plano selecionado pelo aluno",
+                example = "1"
+        )
+        @NotNull
+        Long planoId
 ) {
 }
