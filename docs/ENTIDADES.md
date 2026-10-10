@@ -208,6 +208,9 @@ src/main/java/com/academia/academia_api
 │   ├── Aluno
 │   ├── Pagamento
 │   ├── Plano
+│   ├── ItemPedido
+│   ├── Pedido
+│   ├── Produto
 │   ├── Matricula
 │   ├── Personal
 │   ├── Treino
