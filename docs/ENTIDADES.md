@@ -220,6 +220,8 @@ src/main/java/com/academia/academia_api
 │       ├── GrupoMuscular 
 │       ├── MetodoPagamentEnum
 │       ├── StatusPagamentoEnum
+│       ├── StatusPedidoEnum
+│       ├── MetodoPagamentoLojaEnum
 │       └── TipoPlano
 │
 │
