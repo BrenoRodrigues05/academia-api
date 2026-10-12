@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/BrenoRodrigues05/academia-api/actions/workflows/ci.yml/badge.svg)
 
-API REST desenvolvida com Spring Boot para gerenciamento de academias, com controle de alunos, planos, matrículas, personais, treinos e exercícios, listagens paginadas, autenticação via JWT e RBAC.
+API REST desenvolvida com Spring Boot para gerenciamento de academias, com controle de alunos, planos, matrículas, personais, treinos, exercícios e loja de produtos, listagens paginadas, autenticação via JWT e RBAC.
 
 ## 📑 Sumário
 
@@ -56,6 +56,29 @@ A aplicação conta com um fluxo completo e automatizado de processamento de pag
 
 * **Idempotência e Segurança:** Validação direta na SDK da gateway a cada notificação para evitar cobranças duplicadas e garantir a integridade do status.
 * **Acesso Público Restrito:** Endpoint de Webhook liberado no Spring Security exclusivamente para callbacks da provedora de pagamentos.
+
+---
+
+## 🛍️ Módulo de Loja
+
+Além da gestão da academia, a API possui uma loja para que os alunos comprem produtos (suplementos, acessórios, etc.).
+
+
+### 🔗 Relacionamentos
+
+```text
+Aluno ─────► Pedido ─────► ItemPedido ◄───── Produto
+```
+
+* Um **aluno** pode realizar vários **pedidos**.
+* Um **pedido** é composto por um ou mais **itens**.
+* Cada **item** referencia um **produto** e guarda a `quantidade` e o `preco_unitario` do item.
+* O status do pedido é controlado por `StatusPedidoEnum` e a forma de pagamento por `MetodoPagamentoLojaEnum`.
+### 🗄️ Banco de Dados
+
+* Tabelas `produtos`, `pedidos` e `itens_pedido` criadas via Flyway.
+* Índices em `pedidos(aluno_id)`, `itens_pedido(pedido_id)` e `itens_pedido(produto_id)` para otimizar consultas por aluno e por pedido.
+  📖 Campos, tipos e SQL completos em [`docs/ENTIDADES.md`](docs/ENTIDADES.md)
 
 ---
 
@@ -190,10 +213,11 @@ Para detalhes sobre entidades, relacionamentos, regras de negócio, endpoints e 
 - ✅ Dockerization (API & PostgreSQL via Docker Compose)
 - ✅ Integração de Pagamento Pix com Mercado Pago SDK e Webhook
 - ✅ CI/CD Pipeline
+- ✅ Modelo de dados da loja (Produtos, Pedidos e Itens do Pedido)
 - ⬜ Logs, Soft Delete
 
 📖 Roadmap completo em [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
 ## 👨‍💻 Autor
 
-**Breno Rodrigues** — Desenvolvedor Full Stack · [Linkedin](https://www.linkedin.com/in/brenorodrigues05/)
+**Breno Rodrigues dos Santos** — Desenvolvedor Full Stack · [Linkedin](https://www.linkedin.com/in/brenorodrigues05/)

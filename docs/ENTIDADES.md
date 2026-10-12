@@ -159,6 +159,53 @@ Entidade associativa que compõe a ficha de treinos.
 
 ---
 
+## 🛍️ Produto
+
+Itens disponíveis na loja da academia. Tabela: `produtos`.
+
+| Campo | Tipo | Observação |
+| :--- | :--- | :--- |
+| id | Long | Chave Primária (`BIGSERIAL`) |
+| nome | String | Obrigatório (`VARCHAR(255)`) |
+| descricao | String | Opcional (`TEXT`) |
+| preco | BigDecimal | Obrigatório (`NUMERIC(10,2)`) |
+| estoque | Integer | Quantidade disponível. Obrigatório |
+| imagemUrl | String | URL da imagem do produto (`VARCHAR(255)`, coluna `imagem_url`) |
+| *Herda de BaseEntity* | - | Campos de auditoria |
+ 
+---
+
+## 🧾 Pedido
+
+Compra de produtos realizada por um aluno. Tabela: `pedidos`.
+
+| Campo | Tipo | Observação |
+| :--- | :--- | :--- |
+| id | Long | Chave Primária (`BIGSERIAL`) |
+| aluno | Aluno | Relacionamento N:1 (Chave Estrangeira: `aluno_id`) |
+| valorTotal | BigDecimal | Valor total do pedido (`NUMERIC(10,2)`, coluna `valor_total`) |
+| status | StatusPedidoEnum | Status do pedido |
+| metodoPagamento | MetodoPagamentoLojaEnum | Forma de pagamento escolhida (coluna `metodo_pagamento`) |
+| itens | List<ItemPedido> | Relacionamento OneToMany (Mapeado por `pedido`) |
+| *Herda de BaseEntity* | - | Campos de auditoria |
+ 
+---
+
+## 🛒 ItemPedido
+
+Entidade associativa que compõe os produtos de um pedido. Tabela: `itens_pedido`.
+
+| Campo | Tipo | Observação |
+| :--- | :--- | :--- |
+| id | Long | Chave Primária (`BIGSERIAL`) |
+| pedido | Pedido | Relacionamento N:1 (Chave Estrangeira: `pedido_id`) |
+| produto | Produto | Relacionamento N:1 (Chave Estrangeira: `produto_id`) |
+| quantidade | Integer | Quantidade comprada |
+| precoUnitario | BigDecimal | Preço do produto no momento da compra (`NUMERIC(10,2)`, coluna `preco_unitario`) |
+| *Herda de BaseEntity* | - | Campos de auditoria |
+ 
+---
+
 # 🔄 Relacionamentos
 
 ```text
