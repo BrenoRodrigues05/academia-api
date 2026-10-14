@@ -12,5 +12,5 @@ public interface PedidoMapper {
     @Mapping(target = "alunoNome", source = "aluno.nome")
     @Mapping(target = "pixCopiaECola", ignore = true)
     @Mapping(target = "qrCodeBase64", ignore = true)
-    PedidoResponseDTO toRespoonseDTO(Pedido pedido);
+    PedidoResponseDTO toResponseDTO(Pedido pedido);
 }
