@@ -36,6 +36,16 @@ public class SecurityConfigurations {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
+                        // Produtos
+                        .requestMatchers(HttpMethod.GET, "/api/produtos/**")
+                        .hasAnyRole("ADMIN", "ALUNO")
+                        .requestMatchers(HttpMethod.POST, "/api/produtos")
+                        .hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/produtos/**")
+                        .hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/produtos/**")
+                        .hasAnyRole("ADMIN")
+
                         //Pagamento
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()
 
