@@ -111,6 +111,25 @@ DELETE /api/personais/{id}
 
 ---
 
+## 🛍️ Produtos
+
+```http
+GET    /api/produtos
+GET    /api/produtos/{id}
+GET    /api/produtos/busca-nome
+POST   /api/produtos
+PUT    /api/produtos/{id}
+DELETE /api/personais/{id}
+```
+
+## 🧾 Pedidos
+
+```http
+GET    /api/pedidos/meus-pedidos
+GET    /api/pedidos/status-pagamento
+POST   /api/pedidos
+```
+
 ## 💳 Planos
 
 ```http
