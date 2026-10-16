@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -45,6 +46,12 @@ public class SecurityConfigurations {
                         .hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/produtos/**")
                         .hasAnyRole("ADMIN")
+
+                        // Pedidos
+                        .requestMatchers(HttpMethod.GET, "/api/produtos/**").hasAnyRole("ADMIN",
+                                "ALUNO")
+                        .requestMatchers(HttpMethod.POST, "/api/produtos/**").hasAnyRole("ADMIN",
+                                "ALUNO")
 
                         //Pagamento
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()
