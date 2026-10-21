@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -134,6 +135,7 @@ public class PedidoService {
 
         pedido.setItens(itensPedido);
         pedido.setValorTotal(valorTotal);
+        pedido.setCreatedAt(LocalDateTime.now());
 
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
