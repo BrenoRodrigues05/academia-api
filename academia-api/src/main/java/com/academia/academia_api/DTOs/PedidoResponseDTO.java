@@ -1,5 +1,6 @@
 package com.academia.academia_api.DTOs;
 
+import com.academia.academia_api.entity.BaseEntity;
 import com.academia.academia_api.entity.enums.MetodoPagamentoLojaEnum;
 import com.academia.academia_api.entity.enums.StatusPedidoEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Dados retornados pela API ao consultar um pedido")
-public class PedidoResponseDTO {
+public class PedidoResponseDTO extends BaseEntity {
 
     @Schema(
             description = "Identificador único do pedido.",
