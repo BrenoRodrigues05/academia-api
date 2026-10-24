@@ -50,6 +50,7 @@ public class SecurityConfigurations {
                         // Pedidos
                         .requestMatchers(HttpMethod.GET, "/api/produtos/**").hasAnyRole("ADMIN",
                                 "ALUNO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/produtos/{id}/status-pedido").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/produtos/**").hasAnyRole("ADMIN",
                                 "ALUNO")
 

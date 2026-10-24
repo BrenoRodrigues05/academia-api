@@ -1,9 +1,6 @@
 package com.academia.academia_api.services;
 
-import com.academia.academia_api.DTOs.ItemCarrinhoDTO;
-import com.academia.academia_api.DTOs.PageResponseDTO;
-import com.academia.academia_api.DTOs.PedidoCreateDTO;
-import com.academia.academia_api.DTOs.PedidoResponseDTO;
+import com.academia.academia_api.DTOs.*;
 import com.academia.academia_api.entity.*;
 import com.academia.academia_api.entity.enums.MetodoPagamentoLojaEnum;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
@@ -136,6 +133,33 @@ public class PedidoService {
         pedido.setItens(itensPedido);
         pedido.setValorTotal(valorTotal);
         pedido.setCreatedAt(LocalDateTime.now());
+
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+
+        return pedidoMapper.toResponseDTO(pedidoSalvo);
+    }
+
+    @Transactional
+    public PedidoResponseDTO atualizarStatus(Long id, StatusPedidoEnum novoStatus){
+        if(id == null){
+            throw new BadRequestException("Id inválido ou nulo.");
+        }
+        if (novoStatus == null) {
+            throw new BadRequestException("Status é inválido ou nulo.");
+        }
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado com ID: " + id));
+
+        if(pedido.getStatus() == novoStatus){
+            throw new BadRequestException("Pedido já possui o status selecionado.");
+        }
+
+        switch (pedido.getStatus()){
+            case CONCLUIDO -> throw new BadRequestException("Não é possível mudar status para um pedido já CONCLUIDO.");
+            case CANCELADO -> throw new BadRequestException("Não é possível mudar status para um pedido já CANCELADO.");
+        }
+
+        pedido.setStatus(novoStatus);
 
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
 

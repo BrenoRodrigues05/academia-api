@@ -3,15 +3,21 @@ package com.academia.academia_api.controllers;
 import com.academia.academia_api.DTOs.PedidoCreateDTO;
 import com.academia.academia_api.DTOs.PedidoResponseDTO;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
+import com.academia.academia_api.entity.enums.StatusPedidoEnum;
 import com.academia.academia_api.services.PedidoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(
+        name = "Pedidos.",
+        description = "Gerenciamento dos Pedidos da loja da academia."
+)
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
@@ -47,6 +53,18 @@ public class PedidoController {
     public ResponseEntity<PedidoResponseDTO> criarPedido(@RequestBody @Valid PedidoCreateDTO dto) {
         PedidoResponseDTO pedidoCriado = pedidoService.create(dto);
          return  ResponseEntity.ok(pedidoCriado);
+    }
+
+    @Operation(
+            summary = "Altera Status de um Pedido."
+    )
+    @PatchMapping("/{id}/status-pedido")
+    public ResponseEntity<PedidoResponseDTO> atualizarStatus(
+            @PathVariable @NotNull Long id,
+            @RequestParam @NotNull StatusPedidoEnum status) {
+
+        PedidoResponseDTO response = pedidoService.atualizarStatus(id, status);
+        return ResponseEntity.ok(response);
     }
 
 }

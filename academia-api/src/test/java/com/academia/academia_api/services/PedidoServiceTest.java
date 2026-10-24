@@ -328,4 +328,82 @@ class PedidoServiceTest {
             assertEquals("Aluno não encontrado para o usuário logado.", ex.getMessage());
         }
     }
+
+    @Nested
+    @DisplayName("Cenário para atualizar o Status de um Pedido.")
+    class EditarStatusDePedidoTest {
+        @Test
+        void deveAtualizarStatusComSucesso() {
+            // Arrange
+            when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+            when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
+            when(pedidoMapper.toResponseDTO(any(Pedido.class))).thenReturn(pedidoResponseDTO);
+
+            // Act
+            PedidoResponseDTO resultado = pedidoService.atualizarStatus(1L, StatusPedidoEnum.PAGO);
+
+            // Assert
+            assertNotNull(resultado);
+            assertEquals(StatusPedidoEnum.PAGO, pedido.getStatus());
+            verify(pedidoRepository, times(1)).save(pedido);
+        }
+
+        @Test
+        void deveLancarExceptionQuandoIdForNulo() {
+            BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                    pedidoService.atualizarStatus(null, StatusPedidoEnum.PAGO)
+            );
+            assertEquals("Id inválido ou nulo.", exception.getMessage());
+        }
+
+        @Test
+        void deveLancarExceptionQuandoStatusForNulo() {
+            BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                    pedidoService.atualizarStatus(1L, null)
+            );
+            assertEquals("Status é inválido ou nulo.", exception.getMessage());
+        }
+
+        @Test
+        void deveLancarExceptionQuandoPedidoNaoExistir() {
+            when(pedidoRepository.findById(1L)).thenReturn(Optional.empty());
+
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                    pedidoService.atualizarStatus(1L, StatusPedidoEnum.PAGO)
+            );
+            assertEquals("Pedido não encontrado com ID: 1", exception.getMessage());
+        }
+
+        @Test
+        void deveLancarExceptionQuandoStatusForIgualAoAtual() {
+            when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+            BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                    pedidoService.atualizarStatus(1L, StatusPedidoEnum.PENDENTE_PAGAMENTO)
+            );
+            assertEquals("Pedido já possui o status selecionado.", exception.getMessage());
+        }
+
+        @Test
+        void deveLancarExceptionQuandoPedidoJaEstiverConcluido() {
+            pedido.setStatus(StatusPedidoEnum.CONCLUIDO);
+            when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+            BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                    pedidoService.atualizarStatus(1L, StatusPedidoEnum.CANCELADO)
+            );
+            assertEquals("Não é possível mudar status para um pedido já CONCLUIDO.", exception.getMessage());
+        }
+
+        @Test
+        void deveLancarExceptionQuandoPedidoJaEstiverCancelado() {
+            pedido.setStatus(StatusPedidoEnum.CANCELADO);
+            when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+            BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                    pedidoService.atualizarStatus(1L, StatusPedidoEnum.CONCLUIDO)
+            );
+            assertEquals("Não é possível mudar status para um pedido já CANCELADO.", exception.getMessage());
+        }
+    }
 }
