@@ -127,6 +127,7 @@ DELETE /api/personais/{id}
 ```http
 GET    /api/pedidos/meus-pedidos
 GET    /api/pedidos/status-pagamento
+PATCH  /api/pedidos/{id}/status-pedido
 POST   /api/pedidos
 ```
 
