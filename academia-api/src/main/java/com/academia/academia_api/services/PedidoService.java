@@ -166,6 +166,23 @@ public class PedidoService {
         return pedidoMapper.toResponseDTO(pedidoSalvo);
     }
 
+    public List<PedidoResponseDTO> findByAlunoNomeContainingIgnoreCase (String nome){
+
+        if(nome == null){
+            throw new BadRequestException("Nome vazio o inválido.");
+        }
+
+        List<Pedido> pedidos  = pedidoRepository.findByAlunoNomeContainingIgnoreCase(nome);
+
+        if(pedidos.isEmpty()){
+            throw new ResourceNotFoundException("Nenhum produto encontrado para esse aluno.");
+        }
+
+        return pedidos.stream()
+                .map(pedidoMapper::toResponseDTO)
+                .toList();
+    }
+
     public List<PedidoResponseDTO> listarPedidosDoAlunoLogado() {
         Usuarios usuarioLogado = getUsuarioLogado();
         Aluno aluno = alunoRepository.findByUsuarioId(usuarioLogado.getId())

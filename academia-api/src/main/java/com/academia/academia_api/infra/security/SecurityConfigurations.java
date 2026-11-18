@@ -53,6 +53,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.PATCH, "/api/produtos/{id}/status-pedido").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/produtos/**").hasAnyRole("ADMIN",
                                 "ALUNO")
+                        .requestMatchers(HttpMethod.GET, "/api/produtos/busca-nome-aluno").hasAnyRole("ADMIN")
 
                         //Pagamento
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()

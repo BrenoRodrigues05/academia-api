@@ -56,6 +56,14 @@ public class PedidoController {
     }
 
     @Operation(
+            summary = "Buscar Produto por nome do Aluno."
+    )
+    @GetMapping("/busca-nome-aluno")
+    public ResponseEntity<List<PedidoResponseDTO>> buscaProdutoAluno(String nome){
+        return ResponseEntity.ok(pedidoService.findByAlunoNomeContainingIgnoreCase(nome));
+    }
+
+    @Operation(
             summary = "Altera Status de um Pedido."
     )
     @PatchMapping("/{id}/status-pedido")

@@ -148,9 +148,13 @@ class PedidoServiceTest {
         @Test
         @DisplayName("Deve lançar BadRequestException se o ID for nulo ou menor/igual a zero")
         void deveLancarExcecaoParaIdInvalido() {
-            assertThrows(BadRequestException.class, () -> pedidoService.getById(null));
-            assertThrows(BadRequestException.class, () -> pedidoService.getById(0L));
-            assertThrows(BadRequestException.class, () -> pedidoService.getById(-1L));
+            BadRequestException ex1 = assertThrows(BadRequestException.class, () -> pedidoService.getById(null));
+            BadRequestException ex2 = assertThrows(BadRequestException.class, () -> pedidoService.getById(0L));
+            BadRequestException ex3 = assertThrows(BadRequestException.class, () -> pedidoService.getById(-1L));
+
+            assertEquals("O ID informado é inválido ou nulo.", ex1.getMessage());
+            assertEquals("O ID informado é inválido ou nulo.", ex2.getMessage());
+            assertEquals("O ID informado é inválido ou nulo.", ex3.getMessage());
 
             verify(pedidoRepository, never()).findById(any());
         }
@@ -190,7 +194,8 @@ class PedidoServiceTest {
         @Test
         @DisplayName("Deve lançar BadRequestException se o status for nulo")
         void deveLancarErroSeStatusForNulo() {
-            assertThrows(BadRequestException.class, () -> pedidoService.getByStatus(null));
+            BadRequestException ex = assertThrows(BadRequestException.class, () -> pedidoService.getByStatus(null));
+            assertEquals("Status é inválido ou nulo.", ex.getMessage());
             verify(pedidoRepository, never()).findByStatus(any());
         }
     }
@@ -222,6 +227,7 @@ class PedidoServiceTest {
 
             assertNotNull(resultado);
             assertEquals(8, produto.getEstoque()); // Estoque original 10 - 2 comprados
+            assertEquals(StatusPedidoEnum.RESERVADO_RETIRADA, pedido.getStatus());
             verify(produtoRepository, times(1)).save(produto);
             verify(pedidoRepository, times(1)).save(any(Pedido.class));
         }
@@ -326,6 +332,49 @@ class PedidoServiceTest {
             );
 
             assertEquals("Aluno não encontrado para o usuário logado.", ex.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Cenários de Busca por Nome do Aluno (findByAlunoNomeContainingIgnoreCase)")
+    class FindByAlunoNomeContainingIgnoreCaseTests {
+
+        @Test
+        @DisplayName("Deve retornar lista de pedidos quando encontrar pelo nome do aluno")
+        void deveRetornarPedidosPorNomeAluno() {
+            when(pedidoRepository.findByAlunoNomeContainingIgnoreCase("Breno"))
+                    .thenReturn(List.of(pedido));
+            when(pedidoMapper.toResponseDTO(pedido)).thenReturn(pedidoResponseDTO);
+
+            List<PedidoResponseDTO> resultado = pedidoService.findByAlunoNomeContainingIgnoreCase("Breno");
+
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+            verify(pedidoRepository, times(1)).findByAlunoNomeContainingIgnoreCase("Breno");
+        }
+
+        @Test
+        @DisplayName("Deve lançar BadRequestException se o nome for nulo")
+        void deveLancarErroSeNomeForNulo() {
+            BadRequestException ex = assertThrows(
+                    BadRequestException.class,
+                    () -> pedidoService.findByAlunoNomeContainingIgnoreCase(null)
+            );
+            assertEquals("Nome vazio o inválido.", ex.getMessage());
+            verify(pedidoRepository, never()).findByAlunoNomeContainingIgnoreCase(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException se nenhum pedido for encontrado")
+        void deveLancarErroSeNenhumPedidoEncontradoParaNome() {
+            when(pedidoRepository.findByAlunoNomeContainingIgnoreCase("Desconhecido"))
+                    .thenReturn(List.of());
+
+            ResourceNotFoundException ex = assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> pedidoService.findByAlunoNomeContainingIgnoreCase("Desconhecido")
+            );
+            assertEquals("Nenhum produto encontrado para esse aluno.", ex.getMessage());
         }
     }
 
