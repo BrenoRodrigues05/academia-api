@@ -1,14 +1,12 @@
 package com.academia.academia_api.controllers;
 
-import com.academia.academia_api.DTOs.MercadoPagoNotificationDTO;
 import com.academia.academia_api.services.PagamentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/webhooks")
@@ -23,9 +21,21 @@ public class WebhookController {
 
     @PostMapping("/mercadopago")
     @Operation(summary = "Recebe notificações de alteração de status de pagamento do Mercado Pago")
-    public ResponseEntity<Void> receberNotificacaoMercadoPago(@RequestBody MercadoPagoNotificationDTO notificationDTO) {
-        if(notificationDTO != null && "payment".equals(notificationDTO.type()) && notificationDTO.data() != null){
-            pagamentoService.processarNotificacaoMercadoPago(notificationDTO.data().id());
+    public ResponseEntity<Void> receber(
+            @RequestBody Map<String, Object> body,
+            @RequestParam(name = "data.id", required = false) String dataIdParam) {
+
+        if (!"payment".equals(String.valueOf(body.get("type")))) {
+            return ResponseEntity.ok().build();
+        }
+
+        String id = dataIdParam;
+        if (id == null && body.get("data") instanceof Map<?, ?> data && data.get("id") != null) {
+            id = data.get("id").toString();
+        }
+
+        if (id != null) {
+            pagamentoService.processarNotificacaoMercadoPago(id);
         }
         return ResponseEntity.ok().build();
     }

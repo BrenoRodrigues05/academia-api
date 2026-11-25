@@ -84,4 +84,18 @@ public class MercadoPagoPixAdapter implements PixGateway {
             throw new BadRequestException("Erro ao gerar a cobrança Pix no Mercado Pago.");
         }
     }
+
+    @Override
+    public String consultarStatus(String gatewayId) {
+        try {
+            Payment payment = new PaymentClient().get(Long.parseLong(gatewayId));
+            return payment.getStatus();
+        } catch (MPApiException e) {
+            String detalhe = e.getApiResponse() != null ? e.getApiResponse().getContent() : e.getMessage();
+            System.err.println("Erro ao consultar pagamento " + gatewayId + ": " + detalhe);
+            throw new BadRequestException("Erro ao consultar pagamento no Mercado Pago.");
+        } catch (Exception e) {
+            throw new BadRequestException("Erro ao consultar pagamento no Mercado Pago.");
+        }
+    }
 }

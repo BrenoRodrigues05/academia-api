@@ -10,4 +10,6 @@ public interface PixGateway {
             BigDecimal valor,
             String descricao,
             String emailDevedor);
+
+    String consultarStatus(String gatewayId);
 }

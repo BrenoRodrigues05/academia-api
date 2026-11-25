@@ -65,24 +65,31 @@ public class PagamentoService {
 
     @Transactional
     public void processarNotificacaoMercadoPago(String idTransacaoGateway) {
-        try {
-            Pagamento pagamento = pagamentoRepository.findByGatewayId(idTransacaoGateway)
-                    .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado para o ID de transação: " + idTransacaoGateway));
-            if (pagamento.getStatus() == StatusPagamentoEnum.PENDENTE) {
+        String status = pixGateway.consultarStatus(idTransacaoGateway);
 
-                pagamento.setStatus(StatusPagamentoEnum.PAGO);
-                pagamento.setPagamento(LocalDateTime.now());
-                pagamentoRepository.saveAndFlush(pagamento);
-
-                Matricula matricula = pagamento.getMatricula();
-                matricula.setAtiva(true);
-                matriculaRepositoy.saveAndFlush(matricula);
-
-                System.out.println(">>> SUCESSO: Pagamento " + idTransacaoGateway + " atualizado para PAGO e Matrícula ativada!");
-            }
-
-        } catch (Exception e) {
-            throw new BadRequestException("Erro ao processar notificação: " + e.getMessage());
+        if (!"approved".equals(status)) {
+            System.out.println(">>> Pagamento " + idTransacaoGateway + " com status '" + status + "', nada a fazer.");
+            return;
         }
+        confirmarPagamento(idTransacaoGateway);
+    }
+
+    @Transactional
+    public void confirmarPagamento(String idTransacaoGateway) {
+        Pagamento pagamento = pagamentoRepository.findByGatewayId(idTransacaoGateway)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Pagamento não encontrado para o ID de transação: " + idTransacaoGateway));
+
+        if (pagamento.getStatus() != StatusPagamentoEnum.PENDENTE) {
+            return;
+        }
+
+        pagamento.setStatus(StatusPagamentoEnum.PAGO);
+        pagamento.setPagamento(LocalDateTime.now());
+        pagamentoRepository.save(pagamento);
+
+        Matricula matricula = pagamento.getMatricula();
+        matricula.setAtiva(true);
+        matriculaRepositoy.save(matricula);
     }
 }
