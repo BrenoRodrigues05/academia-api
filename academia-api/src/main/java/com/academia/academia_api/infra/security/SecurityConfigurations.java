@@ -56,7 +56,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.GET, "/api/produtos/busca-nome-aluno").hasAnyRole("ADMIN")
 
                         //Pagamento
-                        .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()
+                        .requestMatchers("/api/webhooks/mercadopago", "/dev/**").permitAll()
 
                         // Login
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
