@@ -24,5 +24,11 @@ public enum MatriculaStatusEnum {
     INATIVA_PENDENTE_PAGAMENTO,
 
     // Cancelamento voluntário concluído (chegou o vencimento e não renovou). Sem acesso.
-    CANCELADA
+    CANCELADA;
+
+    public boolean temAcesso() {
+        return this == ATIVA_PAGO
+                || this == ATIVA_CANCELAMENTO_AGENDADO
+                || this == ATIVA_PENDENTE_PAGAMENTO;
+    }
 }
