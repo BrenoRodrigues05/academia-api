@@ -12,4 +12,6 @@ public interface PixGateway {
             String emailDevedor);
 
     String consultarStatus(String gatewayId);
+
+    void cancelarCobranca(String gatewayId);
 }

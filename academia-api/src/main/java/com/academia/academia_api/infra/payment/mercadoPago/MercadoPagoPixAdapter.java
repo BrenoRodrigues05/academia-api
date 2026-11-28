@@ -86,6 +86,17 @@ public class MercadoPagoPixAdapter implements PixGateway {
     }
 
     @Override
+    public void cancelarCobranca(String gatewayId) {
+        try {
+            new PaymentClient().cancel(Long.valueOf(gatewayId));
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Falha ao cancelar cobrança " + gatewayId, e
+            );
+        }
+    }
+
+    @Override
     public String consultarStatus(String gatewayId) {
         try {
             Payment payment = new PaymentClient().get(Long.parseLong(gatewayId));
