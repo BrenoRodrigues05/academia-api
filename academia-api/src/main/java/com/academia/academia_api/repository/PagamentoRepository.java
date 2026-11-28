@@ -15,4 +15,5 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
     Optional<Pagamento> findByGatewayId(String gatewayId);
     List<Pagamento> findByMatriculaMatriculaAndStatus(Long matricula, StatusPagamentoEnum status);
     Optional<Matricula> findFirstByMatriculaMatriculaAndStatusOrderByMatriculaDesc(Long matricula, StatusPagamentoEnum status);
+    Optional<Pagamento> findFirstByMatriculaMatriculaAndStatusOrderByDataCriacaoDesc(Long matricula, StatusPagamentoEnum status);
 }
