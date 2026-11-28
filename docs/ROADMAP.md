@@ -10,6 +10,8 @@
 * ✅ Registro de Personais
 * ✅ Registro de Administradores
 * ✅ Permissão por proprietário do treino
+* ✅ Credenciais fora do código (variáveis de ambiente)
+* ⬜ Validação da assinatura (`x-signature`) do webhook do Mercado Pago
 
 ## Backend
 
@@ -18,6 +20,8 @@
 * ✅ Tratamento de Validações
 * ✅ Paginação
 * ✅ Auditoria de entidades
+* ✅ Cobrança recorrente de mensalidade via job (Pix)
+* ✅ Notificação de cobrança por e-mail (SMTP)
 * ⬜ Logs centralizados
 * ⬜ Soft Delete
 
@@ -30,7 +34,7 @@
 
 ## Qualidade
 
-* ✅ Testes Unitários
+* ✅ Testes Unitários (incluindo cobrança recorrente)
 * ⬜ Testes de Integração
 * ⬜ Testcontainers
 

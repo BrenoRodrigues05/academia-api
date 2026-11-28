@@ -33,12 +33,13 @@ Responsável pela autenticação e controle de acesso do sistema.
 | :--- | :--- | :--- |
 | id | Long | Chave Primária |
 | nome | String | |
-| email | String | Único |
+| email | String | Único. Usado também para envio da cobrança da mensalidade |
 | telefone | String | |
 | dataNascimento | LocalDate | |
 | sexo | SexoEnum | [MASCULINO, FEMININO] |
 | usuario | Usuarios | Relacionamento 1:1 |
 | execucoes | List&lt;ExecucaoTreino&gt; | Relacionamento OneToMany (Mapeado por `aluno`) |
+| matriculas | List&lt;Matricula&gt; | Relacionamento OneToMany (Mapeado por `aluno`) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
 
 ---
@@ -63,8 +64,8 @@ Responsável pela autenticação e controle de acesso do sistema.
 | id | Long | Chave Primária |
 | nome | String | Ex: Mensal, Semestral |
 | descricao | String | |
-| valor | BigDecimal | |
-| tipo | TipoPlano | Ex: [MUSCULACAO, CROSSFIT, COMPLETO] |
+| valor | BigDecimal | Valor cobrado a cada ciclo |
+| tipo | TipoPlano | [MENSAL, TRIMESTRAL, ANUAL]. Define a duração do ciclo de cobrança (1, 3 ou 12 meses) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
 
 ---
@@ -73,12 +74,32 @@ Responsável pela autenticação e controle de acesso do sistema.
 
 | Campo | Tipo | Observação |
 | :--- | :--- | :--- |
-| id | Long | Chave Primária |
+| matricula | Long | Chave Primária |
 | aluno | Aluno | Relacionamento N:1 |
-| plano | Plano | Relacionamento N:1 |
-| ativa | Boolean | Status do plano do aluno |
+| plano | Plano | Relacionamento N:1 (plano vigente) |
+| planoAgendado | Plano | Relacionamento N:1 opcional (`plano_agendado_id`). Troca que passa a valer no próximo vencimento |
+| status | MatriculaStatusEnum | Estado no ciclo de cobrança (ver tabela abaixo) |
+| ativa | Boolean | **Derivado de `status`**: `true` apenas nos status com acesso |
+| diaVencimento | Integer | Dia escolhido pelo aluno, de 1 a 25 (`dia_vencimento`) |
+| dataVencimento | LocalDate | Próximo vencimento (`data_vencimento`) |
+| dataBloqueio | LocalDate | Data em que entrou em `RESTRICAO_FALTA_PAGAMENTO` (`data_bloqueio`) |
 | pagamentos | List&lt;Pagamento&gt; | Relacionamento OneToMany (Mapeado por `matricula`) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
+
+### MatriculaStatusEnum
+
+| Status | Acesso | Descrição |
+| :--- | :---: | :--- |
+| AGUARDANDO_PRIMEIRO_PAGAMENTO | ❌ | Matrícula criada, primeiro Pix ainda não pago |
+| ATIVA_PAGO | ✅ | Em dia |
+| ATIVA_CANCELAMENTO_AGENDADO | ✅ | Pediu cancelamento; usa até o vencimento, sem nova cobrança |
+| ATIVA_PENDENTE_PAGAMENTO | ✅ | Venceu e está nos 5 dias de carência |
+| RESTRICAO_FALTA_PAGAMENTO | ❌ | Passou da carência sem pagar; pode pagar e voltar por até 1 mês |
+| INATIVA | ❌ | 1 mês bloqueado sem pagar; cobrança antiga anulada |
+| INATIVA_PENDENTE_PAGAMENTO | ❌ | Aluno inativo decidiu voltar; aguardando o novo Pix |
+| CANCELADA | ❌ | Cancelamento voluntário concluído |
+
+📖 Transições e regras em [`REGRAS-NEGOCIO.md`](REGRAS-NEGOCIO.md).
 
 ---
 
@@ -108,8 +129,8 @@ Responsável pela autenticação e controle de acesso do sistema.
 | nome | String | Ex: Treino A - Hipertrofia |
 | observacoes | String | Dicas gerais de execução |
 | ativo | Boolean | |
-| dataInicio | LocalDate |
-| dataFim | LocalDate |
+| dataInicio | LocalDate | |
+| dataFim | LocalDate | |
 | personal | Personal | Relacionamento N:1 (Criador) |
 | execucoes | List&lt;ExecucaoTreino&gt; | Relacionamento OneToMany (Mapeado por `treino`) |
 | itensTreino | List&lt;ItensTreino&gt; | Relacionamento OneToMany (Mapeado por `treino`) |
@@ -172,7 +193,7 @@ Itens disponíveis na loja da academia. Tabela: `produtos`.
 | estoque | Integer | Quantidade disponível. Obrigatório |
 | imagemUrl | String | URL da imagem do produto (`VARCHAR(255)`, coluna `imagem_url`) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
- 
+
 ---
 
 ## 🧾 Pedido
@@ -186,9 +207,9 @@ Compra de produtos realizada por um aluno. Tabela: `pedidos`.
 | valorTotal | BigDecimal | Valor total do pedido (`NUMERIC(10,2)`, coluna `valor_total`) |
 | status | StatusPedidoEnum | Status do pedido |
 | metodoPagamento | MetodoPagamentoLojaEnum | Forma de pagamento escolhida (coluna `metodo_pagamento`) |
-| itens | List<ItemPedido> | Relacionamento OneToMany (Mapeado por `pedido`) |
+| itens | List&lt;ItemPedido&gt; | Relacionamento OneToMany (Mapeado por `pedido`) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
- 
+
 ---
 
 ## 🛒 ItemPedido
@@ -203,7 +224,7 @@ Entidade associativa que compõe os produtos de um pedido. Tabela: `itens_pedido
 | quantidade | Integer | Quantidade comprada |
 | precoUnitario | BigDecimal | Preço do produto no momento da compra (`NUMERIC(10,2)`, coluna `preco_unitario`) |
 | *Herda de BaseEntity* | - | Campos de auditoria |
- 
+
 ---
 
 # 🔄 Relacionamentos
@@ -217,9 +238,11 @@ Usuarios
 
 Aluno
    │
-   └─────► Matricula ◄───── Plano
-                │
-                └─────► Pagamento
+   ├─────► Matricula ◄───── Plano (vigente e agendado)
+   │            │
+   │            └─────► Pagamento
+   │
+   └─────► Pedido ─────► ItemPedido ◄───── Produto
 
 Personal
    │
@@ -245,12 +268,13 @@ src/main/java/com/academia/academia_api
 │   ├── PersonalController
 │   ├── TreinoController
 │   ├── ExercicioController
-│   └── ItemTreinoController
+│   ├── ItemTreinoController
+│   └── WebhookController
 │
 ├── DTOs
 │
 ├── entity
-│   ├── BaseEntity         
+│   ├── BaseEntity
 │   ├── Usuarios
 │   ├── Aluno
 │   ├── Pagamento
@@ -261,14 +285,15 @@ src/main/java/com/academia/academia_api
 │   ├── Matricula
 │   ├── Personal
 │   ├── Treino
-|   ├── ExecucaoTreino
+│   ├── ExecucaoTreino
 │   ├── Exercicio
 │   ├── ItemTreino
 │   └── enums
 │       ├── UserRole
 │       ├── SexoEnum
-│       ├── GrupoMuscular 
-│       ├── MetodoPagamentEnum
+│       ├── GrupoMuscular
+│       ├── MetodoPagamentoEnum
+│       ├── MatriculaStatusEnum
 │       ├── StatusPagamentoEnum
 │       ├── StatusPedidoEnum
 │       ├── MetodoPagamentoLojaEnum
@@ -279,30 +304,38 @@ src/main/java/com/academia/academia_api
 │   └── PixGateway
 │
 ├── infra
-|   ├── config
-|   |   ├── AuditorAwareImpl
-|   |   ├── JpaAuditingConfig
-|   |   └──  OpenApiConfig
-|   | 
+│   ├── config
+│   │   ├── AuditorAwareImpl
+│   │   ├── JpaAuditingConfig
+│   │   └── OpenApiConfig
+│   │
 │   ├── security
-|   |   ├── DataLoader
+│   │   ├── DataLoader
 │   │   ├── SecurityConfigurations
 │   │   ├── SecurityFilter
 │   │   └── TokenService
 │   │
 │   └── exceptions
-|        ├── BadRequestException
-|        ├── ErrorResponse
-|        ├── ForbiddenException
-|        ├── GlobalExceptionHandler
-|        ├── ResourceNotFoundException
-|        └── ValidationErrorResponse
+│       ├── BadRequestException
+│       ├── ErrorResponse
+│       ├── ForbiddenException
+│       ├── GlobalExceptionHandler
+│       ├── ResourceNotFoundException
+│       └── ValidationErrorResponse
+│
+│
+├── Jobs
+│     └── CobrancaRecorrenteJob
 │
 ├── mappings
 │
 ├── repository
 │
 ├── services
+│   ├── MatriculaService
+│   ├── PagamentoService
+│   ├── CicloMatriculaService
+│   └── NotificacaoCobrancaService
 │
 └── AcademiaApiApplication
 ```

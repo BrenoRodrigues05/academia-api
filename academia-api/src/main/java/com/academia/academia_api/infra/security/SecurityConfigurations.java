@@ -118,7 +118,10 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.GET, "/api/matriculas/me").hasAnyRole("ADMIN","ALUNO")
                         .requestMatchers(HttpMethod.GET, "/api/matriculas/**").hasAnyRole("ADMIN", "PERSONAL")
                         .requestMatchers(HttpMethod.POST, "/api/matriculas").hasAnyRole("ADMIN", "PERSONAL", "ALUNO")
+                        .requestMatchers(HttpMethod.POST, "/api/matriculas/cancelar").hasAnyRole("ADMIN", "ALUNO")
+                        .requestMatchers(HttpMethod.POST, "/api/matriculas/reativar").hasAnyRole("ADMIN", "ALUNO")
                         .requestMatchers(HttpMethod.PATCH, "/api/matriculas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/matriculas/definirDiaVencimento").hasAnyRole("ADMIN", "ALUNO")
 
                         // Ececuções de treino
                         .requestMatchers(HttpMethod.POST, "/api/execucoes/iniciar/{treinoId}").hasAnyRole("SUPERADMIN","ALUNO")

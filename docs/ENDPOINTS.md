@@ -119,7 +119,7 @@ GET    /api/produtos/{id}
 GET    /api/produtos/busca-nome
 POST   /api/produtos
 PUT    /api/produtos/{id}
-DELETE /api/personais/{id}
+DELETE /api/produtos/{id}
 ```
 
 ## 🧾 Pedidos
@@ -156,9 +156,18 @@ GET    /api/matriculas
 GET    /api/matriculas/me
 GET    /api/matriculas/{id}
 POST   /api/matriculas
-PUT    /api/{idMatricula}/plano/{idPlano}
-PATCH  /api/{id}/ativo
+PUT    /api/matriculas/{idMatricula}/plano/{idPlano}
+PATCH  /api/matriculas/{id}/dia-vencimento
+POST   /api/matriculas/{id}/cancelamento
+POST   /api/matriculas/{id}/reativacao
 ```
+
+* `GET /api/matriculas/me`: retorna a matrícula do aluno logado. Quando há cobrança pendente, inclui o Pix (`pagamentoId`, `pixCopiaECola`, `qrCodeBase64`).
+* `POST /api/matriculas`: cria a matrícula em `AGUARDANDO_PRIMEIRO_PAGAMENTO` e já retorna o primeiro Pix.
+* `PUT .../plano/{idPlano}`: **agenda** a troca de plano para o próximo vencimento (só com a mensalidade em dia).
+* `PATCH .../dia-vencimento`: define o dia de vencimento após o 1º pagamento. Body: `{ "diaVencimento": 10 }`.
+* `POST .../cancelamento`: cancela a assinatura; o acesso continua até o próximo vencimento.
+* `POST .../reativacao`: reativa matrícula `INATIVA` e retorna um novo Pix.
 
 ---
 

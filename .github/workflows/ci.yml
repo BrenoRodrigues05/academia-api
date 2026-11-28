@@ -20,14 +20,14 @@ jobs:
         env:
           POSTGRES_DB: academia_db
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
       - name: Checkout Repository
@@ -43,10 +43,28 @@ jobs:
       - name: Build and Run Tests
         working-directory: ./academia-api
         env:
-            SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/academia_db
-            SPRING_DATASOURCE_USERNAME: postgres
-            SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
-            API_SECURITY_TOKEN_SECRET: "minha-chave-secreta"
-            SPRING_FLYWAY_ENABLED: "false"
-            SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
-        run: mvn clean install
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/academia_db
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_FLYWAY_ENABLED: "false"
+          SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+          API_SECURITY_TOKEN_SECRET: chave-falsa-apenas-para-ci-com-mais-de-32-caracteres
+          MERCADOPAGO_ACCESS_TOKEN: TEST-token-falso-para-ci
+          SPRING_MAIL_HOST: localhost
+          SPRING_MAIL_PORT: "587"
+          SPRING_MAIL_USERNAME: ci@academia.local
+          SPRING_MAIL_PASSWORD: senha-falsa
+          APP_MAIL_FROM: ci@academia.local
+          APP_MAIL_NOME_ACADEMIA: Minha Academia
+        run: mvn -B clean verify
+
+      - name: Mostrar causa da falha
+        if: failure()
+        run: grep -h "Caused by" academia-api/target/surefire-reports/*.txt | tail -n 8 || true
+
+      - name: Salvar relatórios de teste
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: academia-api/target/surefire-reports

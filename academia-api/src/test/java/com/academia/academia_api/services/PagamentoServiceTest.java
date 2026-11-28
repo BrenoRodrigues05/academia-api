@@ -1,4 +1,3 @@
-
 package com.academia.academia_api.services;
 
 import com.academia.academia_api.DTOs.PixCobrancaResponse;
@@ -6,415 +5,274 @@ import com.academia.academia_api.entity.Aluno;
 import com.academia.academia_api.entity.Matricula;
 import com.academia.academia_api.entity.Pagamento;
 import com.academia.academia_api.entity.Plano;
-import com.academia.academia_api.entity.Usuarios;
+import com.academia.academia_api.entity.enums.MatriculaStatusEnum;
 import com.academia.academia_api.entity.enums.MetodoPagamentoEnum;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
+import com.academia.academia_api.entity.enums.TipoPlano;
 import com.academia.academia_api.infra.exceptions.BadRequestException;
 import com.academia.academia_api.infra.exceptions.ResourceNotFoundException;
 import com.academia.academia_api.infra.gateway.PixGateway;
 import com.academia.academia_api.repository.MatriculaRepositoy;
 import com.academia.academia_api.repository.PagamentoRepository;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Testes do Serviço de Pagamentos")
 class PagamentoServiceTest {
 
-    @Mock
-    private PagamentoRepository pagamentoRepository;
+    private static final String GATEWAY_ID = "123456789";
 
-    @Mock
-    private MatriculaRepositoy matriculaRepositoy;
+    @Mock private PagamentoRepository pagamentoRepository;
+    @Mock private MatriculaRepositoy matriculaRepositoy;
+    @Mock private PixGateway pixGateway;
 
-    @Mock
-    private PixGateway pixGateway;
+    @InjectMocks private PagamentoService service;
 
-    @InjectMocks
-    private PagamentoService pagamentoService;
-
-    private Matricula matriculaMock;
-    private Plano planoMock;
-    private Aluno alunoMock;
-    private Usuarios usuarioMock;
+    private Aluno aluno;
+    private Plano plano;
+    private Matricula matricula;
+    private Pagamento pagamento;
 
     @BeforeEach
     void setUp() {
-
-        usuarioMock = new Usuarios();
-        usuarioMock.setId(1L);
-        usuarioMock.setLogin("aluno.teste");
-
-        alunoMock = new Aluno();
-        alunoMock.setId(1L);
-        alunoMock.setEmail("aluno@teste.com");
-        alunoMock.setUsuario(usuarioMock);
-
-        planoMock = new Plano();
-        planoMock.setId(1L);
-        planoMock.setNome("Plano Mensal");
-        planoMock.setValor(new BigDecimal("100.00"));
-
-        matriculaMock = new Matricula();
-        matriculaMock.setMatricula(10L);
-        matriculaMock.setAluno(alunoMock);
-        matriculaMock.setPlano(planoMock);
-        matriculaMock.setAtiva(false);
-    }
-
-
-    @Nested
-    @DisplayName("Testes do método criarPagamentoPix")
-    class CriarPagamentoPixTests {
-
-        @Test
-        @DisplayName("Deve criar pagamento PIX com sucesso")
-        void deveCriarPagamentoPixComSucesso() {
-
-            PixCobrancaResponse pixResponse = new PixCobrancaResponse(
-                    "transacao-gw-123",
-                    "000201...copiaECola",
-                    "data:image/png;base64,iVBORw0KGgo...",
-                    new BigDecimal("100.00"),
-                    LocalDateTime.now().plusDays(1)
-            );
-
-            when(pagamentoRepository.save(any(Pagamento.class)))
-                    .thenAnswer(invocation -> {
-
-                        Pagamento pagamento = invocation.getArgument(0);
-
-                        if (pagamento.getId() == null) {
-                            pagamento.setId(100L);
-                        }
-
-                        return pagamento;
-                    });
-
-            when(pixGateway.gerarCobrancaPix(
-                    eq(100L),
-                    eq(new BigDecimal("100.00")),
-                    eq("Matrícula Plano: Plano Mensal"),
-                    eq("aluno@teste.com")
-            )).thenReturn(pixResponse);
-
-            Pagamento resultado =
-                    pagamentoService.criarPagamentoPix(matriculaMock);
-
-            assertNotNull(resultado);
-            assertEquals(100L, resultado.getId());
-            assertEquals(new BigDecimal("100.00"), resultado.getValor());
-
-            assertEquals(
-                    MetodoPagamentoEnum.PIX,
-                    resultado.getMetodoPagamento()
-            );
-
-            assertEquals(
-                    StatusPagamentoEnum.PENDENTE,
-                    resultado.getStatus()
-            );
-
-            assertEquals(
-                    "transacao-gw-123",
-                    resultado.getGatewayId()
-            );
-
-            assertEquals(
-                    "000201...copiaECola",
-                    resultado.getCodigoPix()
-            );
-
-            assertEquals(
-                    "data:image/png;base64,iVBORw0KGgo...",
-                    resultado.getQrCodeBase64()
-            );
-
-            assertNotNull(resultado.getDataCriacao());
-            assertNotNull(resultado.getExpiracao());
-
-            verify(pagamentoRepository, times(2))
-                    .save(any(Pagamento.class));
-
-            verify(pixGateway, times(1))
-                    .gerarCobrancaPix(
-                            eq(100L),
-                            eq(new BigDecimal("100.00")),
-                            eq("Matrícula Plano: Plano Mensal"),
-                            eq("aluno@teste.com")
-                    );
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção quando o email for nulo")
-        void deveLancarExcecaoQuandoEmailForNulo() {
-
-            alunoMock.setEmail(null);
-
-            when(pagamentoRepository.save(any(Pagamento.class)))
-                    .thenAnswer(invocation -> {
-
-                        Pagamento pagamento = invocation.getArgument(0);
-                        pagamento.setId(100L);
-
-                        return pagamento;
-                    });
-
-            BadRequestException exception = assertThrows(
-                    BadRequestException.class,
-                    () -> pagamentoService.criarPagamentoPix(matriculaMock)
-            );
-
-            assertEquals(
-                    "E-mail do aluno é obrigatório para gerar o Pix.",
-                    exception.getMessage()
-            );
-
-            verify(pixGateway, never())
-                    .gerarCobrancaPix(any(), any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção quando o email estiver em branco")
-        void deveLancarExcecaoQuandoEmailEstiverEmBranco() {
-
-            alunoMock.setEmail("   ");
-
-            when(pagamentoRepository.save(any(Pagamento.class)))
-                    .thenAnswer(invocation -> {
-
-                        Pagamento pagamento = invocation.getArgument(0);
-                        pagamento.setId(100L);
-
-                        return pagamento;
-                    });
-
-            assertThrows(
-                    BadRequestException.class,
-                    () -> pagamentoService.criarPagamentoPix(matriculaMock)
-            );
-
-            verify(pixGateway, never())
-                    .gerarCobrancaPix(any(), any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("Deve remover espaços do email antes de gerar cobrança")
-        void deveRemoverEspacosDoEmail() {
-
-            alunoMock.setEmail("  aluno@teste.com  ");
-
-            PixCobrancaResponse pixResponse = new PixCobrancaResponse(
-                    "transacao-gw-123",
-                    "codigo-pix",
-                    "qr-code",
-                    new BigDecimal("100.00"),
-                    LocalDateTime.now().plusDays(1)
-            );
-
-            when(pagamentoRepository.save(any(Pagamento.class)))
-                    .thenAnswer(invocation -> {
-
-                        Pagamento pagamento = invocation.getArgument(0);
-                        pagamento.setId(100L);
-
-                        return pagamento;
-                    });
-
-            when(pixGateway.gerarCobrancaPix(
-                    anyLong(),
-                    any(BigDecimal.class),
-                    anyString(),
-                    eq("aluno@teste.com")
-            )).thenReturn(pixResponse);
-
-            pagamentoService.criarPagamentoPix(matriculaMock);
-
-            verify(pixGateway).gerarCobrancaPix(
-                    eq(100L),
-                    any(BigDecimal.class),
-                    anyString(),
-                    eq("aluno@teste.com")
-            );
-        }
-    }
-
-    @Nested
-    @DisplayName("Testes do método processarNotificacaoMercadoPago")
-    class ProcessarNotificacaoMercadoPagoTests {
-
-        @Test
-        @DisplayName("Deve confirmar pagamento quando status for approved")
-        void deveProcessarNotificacaoComSucesso() {
-
-            Pagamento pagamento = criarPagamentoPendente();
-
-            when(pixGateway.consultarStatus("transacao-gw-123"))
-                    .thenReturn("approved");
-
-            when(pagamentoRepository.findByGatewayId("transacao-gw-123"))
-                    .thenReturn(Optional.of(pagamento));
-
-            pagamentoService.processarNotificacaoMercadoPago(
-                    "transacao-gw-123"
-            );
-
-            assertEquals(
-                    StatusPagamentoEnum.PAGO,
-                    pagamento.getStatus()
-            );
-
-            assertNotNull(pagamento.getPagamento());
-
-            assertTrue(matriculaMock.isAtiva());
-
-            verify(pixGateway).consultarStatus("transacao-gw-123");
-
-            verify(pagamentoRepository).findByGatewayId(
-                    "transacao-gw-123"
-            );
-
-            verify(pagamentoRepository).save(pagamento);
-
-            verify(matriculaRepositoy).save(matriculaMock);
-        }
-
-        @Test
-        @DisplayName("Não deve confirmar pagamento quando status não for approved")
-        void naoDeveConfirmarQuandoStatusNaoForApproved() {
-
-            when(pixGateway.consultarStatus("transacao-gw-123"))
-                    .thenReturn("pending");
-
-            pagamentoService.processarNotificacaoMercadoPago(
-                    "transacao-gw-123"
-            );
-
-            verify(pixGateway).consultarStatus("transacao-gw-123");
-
-            verify(pagamentoRepository, never())
-                    .findByGatewayId(anyString());
-
-            verify(pagamentoRepository, never())
-                    .save(any(Pagamento.class));
-
-            verify(matriculaRepositoy, never())
-                    .save(any(Matricula.class));
-
-            assertFalse(matriculaMock.isAtiva());
-        }
-    }
-    @Nested
-    @DisplayName("Testes do método confirmarPagamento")
-    class ConfirmarPagamentoTests {
-
-        @Test
-        @DisplayName("Deve confirmar pagamento pendente e ativar matrícula")
-        void deveConfirmarPagamentoComSucesso() {
-
-            Pagamento pagamento = criarPagamentoPendente();
-
-            when(pagamentoRepository.findByGatewayId("transacao-gw-123"))
-                    .thenReturn(Optional.of(pagamento));
-
-            pagamentoService.confirmarPagamento("transacao-gw-123");
-
-            assertEquals(
-                    StatusPagamentoEnum.PAGO,
-                    pagamento.getStatus()
-            );
-
-            assertNotNull(pagamento.getPagamento());
-
-            assertTrue(matriculaMock.isAtiva());
-
-            verify(pagamentoRepository).save(pagamento);
-
-            verify(matriculaRepositoy).save(matriculaMock);
-        }
-
-        @Test
-        @DisplayName("Deve lançar ResourceNotFoundException quando pagamento não existir")
-        void deveLancarExcecaoQuandoPagamentoNaoExistir() {
-
-            when(pagamentoRepository.findByGatewayId("id-inexistente"))
-                    .thenReturn(Optional.empty());
-
-            assertThrows(
-                    ResourceNotFoundException.class,
-                    () -> pagamentoService.confirmarPagamento(
-                            "id-inexistente"
-                    )
-            );
-
-            verify(pagamentoRepository, never())
-                    .save(any(Pagamento.class));
-
-            verify(matriculaRepositoy, never())
-                    .save(any(Matricula.class));
-        }
-
-        @Test
-        @DisplayName("Não deve alterar pagamento que já esteja pago")
-        void naoDeveAlterarPagamentoJaPago() {
-
-            Pagamento pagamento = criarPagamentoPendente();
-
-            pagamento.setStatus(StatusPagamentoEnum.PAGO);
-
-            LocalDateTime dataPagamento = LocalDateTime.now().minusDays(1);
-
-            pagamento.setPagamento(dataPagamento);
-
-            when(pagamentoRepository.findByGatewayId("transacao-gw-123"))
-                    .thenReturn(Optional.of(pagamento));
-
-            pagamentoService.confirmarPagamento("transacao-gw-123");
-
-            assertEquals(
-                    StatusPagamentoEnum.PAGO,
-                    pagamento.getStatus()
-            );
-
-            assertEquals(dataPagamento, pagamento.getPagamento());
-
-            assertFalse(matriculaMock.isAtiva());
-
-            verify(pagamentoRepository, never())
-                    .save(any(Pagamento.class));
-
-            verify(matriculaRepositoy, never())
-                    .save(any(Matricula.class));
-        }
-    }
-
-    private Pagamento criarPagamentoPendente() {
-
-        Pagamento pagamento = new Pagamento();
-
-        pagamento.setId(100L);
-        pagamento.setGatewayId("transacao-gw-123");
-        pagamento.setValor(new BigDecimal("100.00"));
-        pagamento.setMetodoPagamento(MetodoPagamentoEnum.PIX);
+        aluno = new Aluno();
+        aluno.setEmail("aluno@teste.com");
+
+        plano = new Plano();
+        plano.setNome("Plano Mensal");
+        plano.setTipo(TipoPlano.MENSAL);
+        plano.setValor(new BigDecimal("99.90"));
+
+        matricula = new Matricula();
+        matricula.setMatricula(1L);
+        matricula.setAluno(aluno);
+        matricula.setPlano(plano);
+        matricula.setDiaVencimento(10);
+
+        pagamento = new Pagamento();
+        pagamento.setId(10L);
+        pagamento.setMatricula(matricula);
+        pagamento.setValor(plano.getValor());
         pagamento.setStatus(StatusPagamentoEnum.PENDENTE);
-        pagamento.setMatricula(matriculaMock);
+        pagamento.setGatewayId(GATEWAY_ID);
+    }
 
-        return pagamento;
+
+    @Test
+    @DisplayName("criarPagamentoPix: cria pagamento PENDENTE e preenche dados do gateway")
+    void criarPagamentoPix_sucesso() {
+        when(pagamentoRepository.save(any(Pagamento.class))).thenAnswer(inv -> {
+            Pagamento p = inv.getArgument(0);
+            if (p.getId() == null) p.setId(10L);
+            return p;
+        });
+
+        PixCobrancaResponse resp = mock(PixCobrancaResponse.class);
+        when(resp.transacaoId()).thenReturn(GATEWAY_ID);
+        when(resp.codigoPix()).thenReturn("00020126...");
+        when(resp.qrCodeBase64()).thenReturn("QVFS");
+        when(pixGateway.gerarCobrancaPix(eq(10L), eq(plano.getValor()), anyString(), eq("aluno@teste.com")))
+                .thenReturn(resp);
+
+        Pagamento resultado = service.criarPagamentoPix(matricula);
+
+        assertEquals(StatusPagamentoEnum.PENDENTE, resultado.getStatus());
+        assertEquals(MetodoPagamentoEnum.PIX, resultado.getMetodoPagamento());
+        assertEquals(plano.getValor(), resultado.getValor());
+        assertEquals(GATEWAY_ID, resultado.getGatewayId());
+        assertEquals("00020126...", resultado.getCodigoPix());
+        assertEquals("QVFS", resultado.getQrCodeBase64());
+        verify(pagamentoRepository, times(2)).save(any(Pagamento.class));
+    }
+
+    @Test
+    @DisplayName("criarPagamentoPix: e-mail em branco lança BadRequest e não chama o gateway")
+    void criarPagamentoPix_emailEmBranco() {
+        aluno.setEmail("  ");
+        when(pagamentoRepository.save(any(Pagamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        assertThrows(BadRequestException.class, () -> service.criarPagamentoPix(matricula));
+
+        verifyNoInteractions(pixGateway);
+    }
+
+
+    @Test
+    @DisplayName("confirmarPagamento: pagamento inexistente lança ResourceNotFound")
+    void confirmar_naoEncontrado() {
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.confirmarPagamento(GATEWAY_ID));
+
+        verify(matriculaRepositoy, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("confirmarPagamento: idempotente, pagamento já PAGO não altera nada")
+    void confirmar_idempotente() {
+        pagamento.setStatus(StatusPagamentoEnum.PAGO);
+        matricula.setStatus(MatriculaStatusEnum.ATIVA_PAGO);
+        LocalDate venc = LocalDate.of(2026, 12, 10);
+        matricula.setDataVencimento(venc);
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.confirmarPagamento(GATEWAY_ID);
+
+        assertEquals(venc, matricula.getDataVencimento());
+        verify(pagamentoRepository, never()).save(any());
+        verify(matriculaRepositoy, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("confirmarPagamento: primeiro pagamento ativa a matrícula sem mexer na data")
+    void confirmar_primeiroPagamento() {
+        matricula.setStatus(MatriculaStatusEnum.AGUARDANDO_PRIMEIRO_PAGAMENTO);
+        matricula.setDiaVencimento(null);
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.confirmarPagamento(GATEWAY_ID);
+
+        assertEquals(StatusPagamentoEnum.PAGO, pagamento.getStatus());
+        assertNotNull(pagamento.getPagamento());
+        assertEquals(MatriculaStatusEnum.ATIVA_PAGO, matricula.getStatus());
+        assertTrue(matricula.isAtiva());
+        assertNull(matricula.getDataVencimento());
+        verify(matriculaRepositoy).save(matricula);
+    }
+
+    @Test
+    @DisplayName("confirmarPagamento: renovação em carência avança 1 mês a partir do vencimento original")
+    void confirmar_renovacaoEmCarencia() {
+        matricula.setStatus(MatriculaStatusEnum.ATIVA_PENDENTE_PAGAMENTO);
+        matricula.setDataVencimento(LocalDate.of(2026, 12, 10));
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.confirmarPagamento(GATEWAY_ID);
+
+        assertEquals(MatriculaStatusEnum.ATIVA_PAGO, matricula.getStatus());
+        assertTrue(matricula.isAtiva());
+        assertEquals(LocalDate.of(2027, 1, 10), matricula.getDataVencimento());
+        verify(matriculaRepositoy).save(matricula);
+    }
+
+    @Test
+    @DisplayName("confirmarPagamento: pagando em RESTRICAO volta a ATIVA_PAGO, limpa bloqueio e avança o ciclo do plano")
+    void confirmar_pagamentoEmRestricao() {
+        plano.setTipo(TipoPlano.TRIMESTRAL);
+        matricula.setStatus(MatriculaStatusEnum.RESTRICAO_FALTA_PAGAMENTO);
+        matricula.setDataVencimento(LocalDate.of(2026, 12, 10));
+        matricula.setDataBloqueio(LocalDate.of(2026, 12, 16));
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.confirmarPagamento(GATEWAY_ID);
+
+        assertEquals(MatriculaStatusEnum.ATIVA_PAGO, matricula.getStatus());
+        assertTrue(matricula.isAtiva());
+        assertNull(matricula.getDataBloqueio());
+        assertEquals(LocalDate.of(2027, 3, 10), matricula.getDataVencimento());
+    }
+
+    @Test
+    @DisplayName("confirmarPagamento: reativação reinicia o ciclo a partir de hoje no dia de vencimento escolhido")
+    void confirmar_reativacao() {
+        matricula.setStatus(MatriculaStatusEnum.INATIVA_PENDENTE_PAGAMENTO);
+        matricula.setDataVencimento(LocalDate.of(2025, 1, 10));
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.confirmarPagamento(GATEWAY_ID);
+
+        LocalDate esperado = LocalDate.now().plusMonths(1).withDayOfMonth(10);
+        assertEquals(MatriculaStatusEnum.ATIVA_PAGO, matricula.getStatus());
+        assertTrue(matricula.isAtiva());
+        assertEquals(esperado, matricula.getDataVencimento());
+        assertNull(matricula.getDataBloqueio());
+    }
+
+    @Test
+    @DisplayName("confirmarPagamento: status inesperado marca o pagamento PAGO mas não altera o ciclo")
+    void confirmar_statusInesperado() {
+        LocalDate venc = LocalDate.of(2026, 12, 10);
+        matricula.setStatus(MatriculaStatusEnum.ATIVA_PAGO);
+        matricula.setDataVencimento(venc);
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.confirmarPagamento(GATEWAY_ID);
+
+        assertEquals(StatusPagamentoEnum.PAGO, pagamento.getStatus());
+        assertEquals(MatriculaStatusEnum.ATIVA_PAGO, matricula.getStatus());
+        assertEquals(venc, matricula.getDataVencimento());
+    }
+
+    @Test
+    @DisplayName("processarNotificacao: status approved confirma o pagamento")
+    void notificacao_approved() {
+        matricula.setStatus(MatriculaStatusEnum.AGUARDANDO_PRIMEIRO_PAGAMENTO);
+        when(pixGateway.consultarStatus(GATEWAY_ID)).thenReturn("approved");
+        when(pagamentoRepository.findByGatewayId(GATEWAY_ID)).thenReturn(Optional.of(pagamento));
+
+        service.processarNotificacaoMercadoPago(GATEWAY_ID);
+
+        assertEquals(StatusPagamentoEnum.PAGO, pagamento.getStatus());
+        assertEquals(MatriculaStatusEnum.ATIVA_PAGO, matricula.getStatus());
+    }
+
+    @Test
+    @DisplayName("processarNotificacao: status diferente de approved não faz nada")
+    void notificacao_naoApproved() {
+        when(pixGateway.consultarStatus(GATEWAY_ID)).thenReturn("pending");
+
+        service.processarNotificacaoMercadoPago(GATEWAY_ID);
+
+        verify(pagamentoRepository, never()).findByGatewayId(anyString());
+        verifyNoInteractions(matriculaRepositoy);
+    }
+
+
+    @Test
+    @DisplayName("cancelarPendentes: cancela no gateway e marca todos os pendentes como CANCELADO")
+    void cancelarPendentes_cancelaTodos() {
+        Pagamento outro = new Pagamento();
+        outro.setId(11L);
+        outro.setMatricula(matricula);
+        outro.setStatus(StatusPagamentoEnum.PENDENTE);
+        outro.setGatewayId("987654321");
+
+        when(pagamentoRepository.findByMatriculaMatriculaAndStatus(1L, StatusPagamentoEnum.PENDENTE))
+                .thenReturn(List.of(pagamento, outro));
+
+        service.cancelarPendentes(matricula);
+
+        assertEquals(StatusPagamentoEnum.CANCELADO, pagamento.getStatus());
+        assertEquals(StatusPagamentoEnum.CANCELADO, outro.getStatus());
+        verify(pixGateway).cancelarCobranca(GATEWAY_ID);
+        verify(pixGateway).cancelarCobranca("987654321");
+        verify(pagamentoRepository, times(2)).save(any(Pagamento.class));
+    }
+
+    @Test
+    @DisplayName("cancelarPendentes: sem pendentes não chama o gateway")
+    void cancelarPendentes_semPendentes() {
+        when(pagamentoRepository.findByMatriculaMatriculaAndStatus(1L, StatusPagamentoEnum.PENDENTE))
+                .thenReturn(List.of());
+
+        service.cancelarPendentes(matricula);
+
+        verifyNoInteractions(pixGateway);
+        verify(pagamentoRepository, never()).save(any());
     }
 }

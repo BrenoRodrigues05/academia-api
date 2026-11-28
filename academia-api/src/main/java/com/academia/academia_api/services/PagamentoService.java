@@ -2,6 +2,7 @@ package com.academia.academia_api.services;
 
 import com.academia.academia_api.DTOs.PixCobrancaResponse;
 import com.academia.academia_api.entity.Matricula;
+import com.academia.academia_api.entity.enums.MatriculaStatusEnum;
 import com.academia.academia_api.entity.enums.MetodoPagamentoEnum;
 import com.academia.academia_api.entity.Pagamento;
 import com.academia.academia_api.entity.enums.StatusPagamentoEnum;
@@ -15,6 +16,7 @@ import com.mercadopago.resources.payment.Payment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -80,16 +82,46 @@ public class PagamentoService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Pagamento não encontrado para o ID de transação: " + idTransacaoGateway));
 
-        if (pagamento.getStatus() != StatusPagamentoEnum.PENDENTE) {
-            return;
-        }
+        if (pagamento.getStatus() != StatusPagamentoEnum.PENDENTE) return;
 
         pagamento.setStatus(StatusPagamentoEnum.PAGO);
         pagamento.setPagamento(LocalDateTime.now());
         pagamentoRepository.save(pagamento);
 
-        Matricula matricula = pagamento.getMatricula();
-        matricula.setAtiva(true);
-        matriculaRepositoy.save(matricula);
+        Matricula m = pagamento.getMatricula();
+        int meses = m.getPlano().getTipo().meses();
+
+        switch (m.getStatus()) {
+            case AGUARDANDO_PRIMEIRO_PAGAMENTO ->
+                    m.setStatus(MatriculaStatusEnum.ATIVA_PAGO);
+
+            case ATIVA_PENDENTE_PAGAMENTO, RESTRICAO_FALTA_PAGAMENTO -> {
+                m.setDataVencimento(m.getDataVencimento().plusMonths(meses));
+                m.setDataBloqueio(null);
+                m.setStatus(MatriculaStatusEnum.ATIVA_PAGO);
+            }
+
+            case INATIVA_PENDENTE_PAGAMENTO -> {
+                LocalDate base = LocalDate.now().plusMonths(meses);
+                m.setDataVencimento(base.withDayOfMonth(m.getDiaVencimento()));
+                m.setDataBloqueio(null);
+                m.setStatus(MatriculaStatusEnum.ATIVA_PAGO);
+            }
+
+            default -> System.out.println(">>> Pagamento " + idTransacaoGateway
+                    + " recebido com matrícula em " + m.getStatus() + ", revisar manualmente.");
+        }
+        matriculaRepositoy.save(m);
+    }
+
+    @Transactional
+    public void cancelarPendentes(Matricula matricula) {
+        pagamentoRepository.findByMatriculaMatriculaAndStatus(
+                matricula.getMatricula(), StatusPagamentoEnum.PENDENTE
+        ).forEach(p -> {
+            pixGateway.cancelarCobranca(p.getGatewayId());
+            p.setStatus(StatusPagamentoEnum.CANCELADO);
+            pagamentoRepository.save(p);
+        });
     }
 }
