@@ -1,8 +1,5 @@
 package com.academia.academia_api.controllers;
-import com.academia.academia_api.DTOs.MatriculaCreateDTO;
-import com.academia.academia_api.DTOs.MatriculaResponseDTO;
-import com.academia.academia_api.DTOs.PageResponseDTO;
-import com.academia.academia_api.DTOs.PlanoResponseDTO;
+import com.academia.academia_api.DTOs.*;
 import com.academia.academia_api.services.MatriculaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -80,7 +77,7 @@ public class MatriculaController {
     @PutMapping("/{idMatricula}/plano/{idPlano}")
     public ResponseEntity<MatriculaResponseDTO> editarPlano(@PathVariable Long idMatricula, @PathVariable Long idPlano) {
 
-        MatriculaResponseDTO response = matriculaService.editarPlanoMatricula(idMatricula, idPlano);
+        MatriculaResponseDTO response = matriculaService.agendarTrocaPlano(idMatricula, idPlano);
         return ResponseEntity.ok(response);
     }
 
@@ -91,5 +88,24 @@ public class MatriculaController {
     public ResponseEntity<MatriculaResponseDTO> alterarStatus(@PathVariable Long id, @RequestParam boolean novoStatus){
         MatriculaResponseDTO matriculaDesativada = matriculaService.alterarStatus(id, novoStatus);
         return ResponseEntity.ok(matriculaDesativada);
+    }
+
+    @Operation(summary = "Define o dia de vencimento (obrigatório após o 1º pagamento).")
+    @PatchMapping("/{id}/dia-vencimento")
+    public ResponseEntity<MatriculaResponseDTO> definirDiaVencimento(
+            @PathVariable Long id, @Valid @RequestBody DiaVencimentoDTO dto) {
+        return ResponseEntity.ok(matriculaService.definirDiaVencimento(id, dto.diaVencimento()));
+    }
+
+    @Operation(summary = "Cancela a assinatura: mantém o acesso até o próximo vencimento.")
+    @PostMapping("/{id}/cancelamento")
+    public ResponseEntity<MatriculaResponseDTO> cancelar(@PathVariable Long id) {
+        return ResponseEntity.ok(matriculaService.cancelarAssinatura(id));
+    }
+
+    @Operation(summary = "Reativa uma matrícula inativa e gera novo Pix.")
+    @PostMapping("/{id}/reativacao")
+    public ResponseEntity<MatriculaResponseDTO> reativar(@PathVariable Long id) {
+        return ResponseEntity.ok(matriculaService.reativar(id));
     }
 }
