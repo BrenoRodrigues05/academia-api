@@ -46,12 +46,16 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/academia_db
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
-          JWT_SECRET: chave-falsa-apenas-para-ci-com-mais-de-32-caracteres
-          MERCADOPAGO_ACCESS_TOKEN: TEST-token-falso-para-ci
-          MAIL_USERNAME: ci@academia.local
-          MAIL_PASSWORD: senha-falsa
           SPRING_FLYWAY_ENABLED: "false"
           SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+          API_SECURITY_TOKEN_SECRET: chave-falsa-apenas-para-ci-com-mais-de-32-caracteres
+          MERCADOPAGO_ACCESS_TOKEN: TEST-token-falso-para-ci
+          SPRING_MAIL_HOST: localhost
+          SPRING_MAIL_PORT: "587"
+          SPRING_MAIL_USERNAME: ci@academia.local
+          SPRING_MAIL_PASSWORD: senha-falsa
+          APP_MAIL_FROM: ci@academia.local
+          APP_MAIL_NOME_ACADEMIA: Minha Academia
         run: mvn -B clean verify
 
       - name: Mostrar causa da falha
