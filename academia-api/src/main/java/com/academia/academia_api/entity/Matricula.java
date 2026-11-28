@@ -48,4 +48,12 @@ public class Matricula extends BaseEntity{
 
     @Column(name = "data_vencimento")
     private LocalDate dataVencimento;
+
+    @Column(name = "data_bloqueio")
+    private LocalDate dataBloqueio;
+
+    public void setStatus(MatriculaStatusEnum status) {
+        this.status = status;
+        this.ativa = status != null && status.temAcesso();
+    }
 }
